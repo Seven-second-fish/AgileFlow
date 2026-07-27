@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "files": {
+    "role-req.md": "sha256:32c7e9b9ed91d4de1176e82b92c2608f1cc28d946d3f05a52353e7de490b3423",
+    "role-model.md": "sha256:13147b1d6f563fc275b12ff07510aad07331311809c4bf15fa5e6fea2bdd1799",
+    "role-sol.md": "sha256:faec5d4fc688594014c4c01692405301af070080e36257df3905640178917562",
+    "role-dev.md": "sha256:b453cd3242efc85b622b4f90c39ff5df6a657214320ec2d23b7e4549906ed698"
+  },
+  "updatedAt": "2026-07-27T14:58:15.658Z"
+}

@@ -287,7 +287,7 @@ export function validateAtlas(options = {}) {
       customRoles,
     });
   }
-  // 弱模型漏跑 write-code：已有业务源码时，收口闸门强制再验 write-code 全链
+  // 弱模型漏跑 write-code：已有业务源码时，收口闸门强制再验 write-code 全链 + 上游派活
   const forceWriteCodeOn = new Set(['sol-confirm', 'dev-complete', 'test-entry']);
   if (
     options.dispatchGate &&
@@ -308,6 +308,13 @@ export function validateAtlas(options = {}) {
       mode,
       customRoles,
     });
+    // 再验 write-code 档 ORCH（含上游 req/model/sol），避免只验了当前 gate 的单 role
+    if (shouldRun('dispatch-ledger')) {
+      validateDispatchLedger(projectRoot, reporter, {
+        gateId: 'write-code',
+        devFile: options.devFile,
+      });
+    }
   }
   // 收口硬拦：dev-complete / test-entry 无条件验 AC 回填（不依赖 todo 是否已勾完成）
   if (shouldRun('req-ac-backfill') && !templateMode) {

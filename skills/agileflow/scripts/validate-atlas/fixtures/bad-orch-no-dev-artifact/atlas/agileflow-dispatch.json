@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "mode": "normal",
+  "entries": [
+    {
+      "at": "2026-01-01T00:00:00.000Z",
+      "phase": "1",
+      "role": "req",
+      "gate": "req-confirm",
+      "taskId": null,
+      "paths": ["atlas/requirements/REQ-001-login.md"],
+      "subagentId": "fixture-subagent-req-1",
+      "stepId": "af-req"
+    }
+  ]
+}

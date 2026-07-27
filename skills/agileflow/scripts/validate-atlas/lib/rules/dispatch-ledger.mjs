@@ -4,6 +4,8 @@ import path from 'node:path';
 import { collectFiles, exists, rel, readText } from '../fs-utils.mjs';
 import { loadAfEnv } from '../af-env.mjs';
 import { validateFlowScope } from '../scope.mjs';
+import { isStepSkipped } from '../flow.mjs';
+import { detectBusinessSource } from '../brownfield.mjs';
 
 /** 派活台账（与 agileflow.env 同级，项目 atlas/ 内） */
 export const DISPATCH_LEDGER_REL = 'atlas/agileflow-dispatch.json';
@@ -17,7 +19,10 @@ export const DISPATCH_LEDGER_LEGACY_RELS = [
 /** Subagent 派活提示（Cursor 宿主用 Task 工具） */
 const DISPATCH_SUBAGENT_HINT = '须先派 Subagent 派 role-{role}（Cursor=Task）';
 
-/** @typedef {'req-confirm'|'mod-confirm'|'sol-confirm'|'dev-step1-literal'|'write-code'} DispatchGateId */
+/** @typedef {'req-confirm'|'mod-confirm'|'sol-confirm'|'dev-step1-literal'|'write-code'|'dev-complete'|'test-entry'} DispatchGateId */
+
+/** 写码/收口闸门：须连带验上游 role 派活（防 Hy3 类「只派写码、跳过 req/model/sol」） */
+const WRITE_CODE_CHAIN_GATES = new Set(['write-code', 'dev-complete', 'test-entry']);
 
 /**
  * 闸门路径也须校验台账 stepId 在 flow.yaml steps 内（与 validateFlowScope 一致）
@@ -384,9 +389,57 @@ function runPathChecksForGate(projectRoot, reporter, entries, gateId, devFile, o
     validatePathDispatch(projectRoot, reporter, entries, 'sol', 'sol-confirm', listSolDispatchTargets, opts);
     return;
   }
-  if (gateId === 'dev-step1-literal' || gateId === 'write-code') {
+  if (gateId === 'dev-step1-literal') {
     validateDevDispatch(projectRoot, reporter, entries, devFile);
+    return;
   }
+  // write-code / dev-complete / test-entry：上游 role + dev 全链咬合
+  if (WRITE_CODE_CHAIN_GATES.has(gateId)) {
+    validateUpstreamDispatchForWriteCode(projectRoot, reporter, entries, gateId, opts);
+    validateDevDispatch(projectRoot, reporter, entries, devFile);
+    validateBusinessSourceNeedsDevArtifact(projectRoot, reporter, gateId, opts);
+  }
+}
+
+/**
+ * 写码/收口：盘上已有 REQ/model/sol 产物时，台账必须有对应 role 派活记录（步未 skip）
+ * @param {string} projectRoot
+ * @param {import('../reporter.mjs').Reporter} reporter
+ * @param {object[]} entries
+ * @param {string} gateId
+ * @param {{ degraded?: boolean }} [opts]
+ */
+function validateUpstreamDispatchForWriteCode(projectRoot, reporter, entries, gateId, opts = {}) {
+  const label = `${gateId}·上游`;
+  if (!isStepSkipped(projectRoot, 'af-req')) {
+    validatePathDispatch(projectRoot, reporter, entries, 'req', label, listReqFiles, opts);
+  }
+  if (!isStepSkipped(projectRoot, 'af-mod')) {
+    validatePathDispatch(projectRoot, reporter, entries, 'model', label, listModelDispatchTargets, opts);
+  }
+  if (!isStepSkipped(projectRoot, 'af-sol')) {
+    validatePathDispatch(projectRoot, reporter, entries, 'sol', label, listSolDispatchTargets, opts);
+  }
+}
+
+/**
+ * 已有业务源码却无 atlas/dev/T-*.md → 典型「跳构思直接码」逃逸
+ * @param {string} projectRoot
+ * @param {import('../reporter.mjs').Reporter} reporter
+ * @param {string} gateId
+ * @param {{ degraded?: boolean }} [opts]
+ */
+function validateBusinessSourceNeedsDevArtifact(projectRoot, reporter, gateId, opts = {}) {
+  if (opts.degraded) return;
+  if (!detectBusinessSource(projectRoot)) return;
+  if (listReqFiles(projectRoot).length === 0) return;
+  if (listDevTaskFiles(projectRoot).length > 0) return;
+  reporter.add({
+    severity: 'error',
+    rule: 'ORCH-NO-DEV-ARTIFACT',
+    file: DISPATCH_LEDGER_REL,
+    message: `${gateId}：已有业务源码且存在 REQ，但 atlas/dev 无 T-*.md → 须先派 role-dev 落盘构思并记台账，禁止无派活直接写码`,
+  });
 }
 
 /**

@@ -29,7 +29,7 @@
 | `AF_TEMPLATE` | `no` / `yes` | 文档形态：`no`=legacy（默认）；`yes`=读 `atlas/template/` 走 generic-doc 校验 |
 | `AF_HOST_CAPABILITY` | `full` / `degraded` / `pending` | 宿主 Subagent 能力（**总控首条**据 tool list 写；`pending` 跑 gate 红）。`full` 禁止 degraded 台账 |
 
-**铁律**：加速靠少停 + 并发，不是少写文档、不是跳阶段。
+**铁律**：加速靠少停 + 并发，不是少写文档、不是跳阶段。**「你定」≠ 免派活 / 免 gate / 主线程包办正文。**
 
 ---
 

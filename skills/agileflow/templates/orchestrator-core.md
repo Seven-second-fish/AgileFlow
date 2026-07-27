@@ -65,7 +65,7 @@ active Run 启动后若 `flow.yaml` 改变：执行 `agileflow run abandon --rea
 | 5 | **`pending`+启动卡；明确委托才 `AF_DECIDE=ai`** <!-- 踩线：静默改决策维 --> |
 | 6 | **有 Task → `full` + normal 台账** <!-- 踩线：假 degraded --> |
 | 7 | **产物进铁律路径**（`requirements/` 等） <!-- 踩线：`atlas/req/` --> |
-| 8 | **写码前 `--gate write-code` exit 0** <!-- 踩线：先码后补 ① --> |
+| 8 | **写码前 `--gate write-code` exit 0** <!-- 踩线：先码后补 ① / 「概念过闸」 --> |
 | 9 | **闸门红 → 回灌同角色修复**（exit 0 才进阶） <!-- 踩线：红装绿 --> |
 | 10 | **总控独占 env/todo/flow/台账** <!-- 踩线：Subagent 改状态 --> |
 | 11 | **先写 `todo.md` 再 `sol-confirm`** <!-- 踩线：无 todo 过 sol --> |
@@ -73,6 +73,8 @@ active Run 启动后若 `flow.yaml` 改变：执行 `agileflow run abandon --rea
 | 13 | **派活信封只列路径；只读当前步 Agent 摘要** <!-- 踩线：一 Agent 多 T --> |
 | 14 | **skip 必须写 `reason` 到 flow.yaml** <!-- 踩线：静默 skip --> |
 | 15 | **REQ AC 回填后再标开发完成** <!-- 踩线：「③ 后填」装 ✅ --> |
+
+**反务实逃逸（硬）**：禁止以「CLI 未装 / 赶交付 / 你定 / token」为主线程写 REQ·model·sol 或跳过 gate。CLI 缺失 → 先装/调用 `npx @agileflow/cli`（或 skill 内 bin）；**不可**「概念过闸」。有 Subagent 却只派写码 Agent = 违 #1/#2，`write-code` 会因缺上游 `role=req|model|sol` 台账红。
 
 ## `ai` 自治循环
 

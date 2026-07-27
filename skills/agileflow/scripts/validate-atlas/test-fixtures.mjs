@@ -364,6 +364,18 @@ const cases = [
     assertStdout: 'ORCH-DISPATCH-MISMATCH',
   },
   {
+    name: 'bad-orch-write-code-no-upstream → write-code 缺 role=req 应失败',
+    args: ['--root', path.join(fixtures, 'bad-orch-write-code-no-upstream'), '--gate', 'write-code'],
+    fail: true,
+    assertStdout: 'ORCH-NO-DISPATCH',
+  },
+  {
+    name: 'bad-orch-no-dev-artifact → write-code 有源码无 T 应失败',
+    args: ['--root', path.join(fixtures, 'bad-orch-no-dev-artifact'), '--gate', 'write-code'],
+    fail: true,
+    assertStdout: 'ORCH-NO-DEV-ARTIFACT',
+  },
+  {
     name: 'bad-orch-legacy-dev-step1 → dev-step1 旧路径 warn 硬挡',
     args: [
       '--gate',

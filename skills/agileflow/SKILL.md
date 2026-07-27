@@ -3,7 +3,7 @@ name: agileflow
 description: >-
   多 Agent 强制流程：当前会话=总控，正文由 Subagent 产出，总控只写状态与闸门。
   按 atlas/flow.yaml 步序落盘再写码验收。触发：/af（默认入口）、@agileflow、
-  /af-req 等门牌。安装：npx @agileflow/cli init。
+  /af-req 等门牌。安装：npx @agileflow/cli@latest init。
 ---
 # Agileflow
 
@@ -12,7 +12,7 @@ description: >-
 ## L0 五条（始终）
 
 1. **flow 启用步才受管** — `AF_STEP`/skip/depends/主链闸门/台账只针对 flow.yaml `steps`；快捷 → [quick-commands](phases/quick-commands.md)；前置 init → [00-project-init](phases/00-project-init.md#agent-摘要)。
-2. **总控只路由（flow 步）** — 派 Subagent；记 `atlas/agileflow-dispatch.json`；改 env/todo/**flow**。首启 `--bootstrap-scaffold`。无 Subagent → [orch-core 宿主](templates/orchestrator-core.md#宿主义务)（含 WorkBuddy）。
+2. **总控只路由（flow 步）** — 派 Subagent；记 `atlas/agileflow-dispatch.json`；改 env/todo/**flow**。首启 `--bootstrap-scaffold`。无 Subagent → [orch-core 宿主](templates/orchestrator-core.md#宿主义务)（含 WorkBuddy）。**禁止**「概念过闸」；「你定」≠ 免阶段/免派活。
 3. **先落盘再进阶** — flow 步先启动/恢复 Run；产物登记后跑 gate；仅当前 Run、当前输入摘要的最新 PASS 才可勾 ✅ / advanceStep。旧项目无 `atlas/state/current.json` 时兼容旧回执。
 4. **决策权控停点** — `AF_DECIDE`；`ai` 绿 → **同会话连做**（**不免**每步 `af-commands` 留痕；仅入口 `/af` 一行不够）；中途 AI 接管 → [contract §3](templates/contract.md#3-话术表必须看上下文)。
 5. **一处定义、他处只链**。首行 `📍 … | 步：{AF_STEP} | 档：{AF_PHASE}` · 自修≤3 · 首条写 `AF_HOST_CAPABILITY` · `pending` 问人。
@@ -84,6 +84,6 @@ CLI：`npx @agileflow/cli`。索引：[orch](templates/orchestrator.md)·[flow](
 
 **Key files:** `SKILL.md` (this file, L0) → `phases/*.md` (L1, per-phase rules) → `templates/*.md` (L2, doc templates)
 
-**Install:** `npx @agileflow/cli init`
+**Install:** `npx @agileflow/cli@latest init`
 
 </details>
