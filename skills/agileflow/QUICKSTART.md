@@ -8,7 +8,7 @@
 
 ```bash
 # 1️⃣ 安装（一次）
-npx @agileflow/cli init
+npx @agileflow/cli@latest init
 ```
 
 ```
@@ -34,54 +34,57 @@ npx @agileflow/cli init
 **最轻量（推荐首次）：用户级，全平台一次装好**
 
 ```bash
-npx @agileflow/cli init
+npx @agileflow/cli@latest init
 # → ~/.cursor/skills/、~/.agents/skills/、~/.claude/skills/、~/.workbuddy/skills/、~/.codebuddy/skills/、~/.qoder/skills/
 # 重启各 IDE / Agent 后全局可用
 ```
 
-**项目级：只给当前仓库装（可指定宿主）**
+**项目级：只给当前仓库装（统一装到 `{项目}/skills/`）**
 
 ```bash
 cd YOUR_PROJECT
-npx @agileflow/cli init --root . --tools cursor
-# 或：--tools cursor,codex,workbuddy,codebuddy,qoder
+npx @agileflow/cli@latest init --root .
+# → skills/agileflow/ + skills/af-*/（所有宿主共用这一份）
+# 默认先删旧再装，不留 .bak；旧 .cursor|.claude|…/skills/ 安装会被顺带清理
 # 脚手架（写入 atlas/ 骨架）：
 npx @agileflow/cli gate --bootstrap-scaffold --root .
 ```
 
 > 安装完直接发 `/af` 就能用。下面详细解释各步骤。
 
-| 命令 | 装到哪 | 默认 tools |
-|------|--------|------------|
-| `init` | 用户 HOME 下各宿主 skills | **全部**（cursor+claude+codex+workbuddy+codebuddy+qoder） |
-| `init --root .` | 项目目录 | **cursor**（用 `--tools` 改） |
+| 命令 | 装到哪 | 说明 |
+|------|--------|------|
+| `init` | 用户 HOME 下各宿主 skills | 全部宿主（cursor+claude+codex+workbuddy+codebuddy+qoder） |
+| `init --root .` | `{项目}/skills/`（单份，各宿主共用） | `--tools` 仅影响旧路径清理，默认全部 |
 
 各宿主 skills 根：
 
 | 宿主 | 用户级 | 项目级（`--root .`） |
 |------|--------|----------------------|
-| Cursor | `~/.cursor/skills/` | `.cursor/skills/` |
-| Claude | `~/.claude/skills/` | `.claude/skills/` |
-| Codex | `~/.agents/skills/` | `.agents/skills/` |
-| WorkBuddy | `~/.workbuddy/skills/` | `.workbuddy/skills/` |
-| CodeBuddy | `~/.codebuddy/skills/` | `.codebuddy/skills/` |
-| Qoder | `~/.qoder/skills/` | `.qoder/skills/` |
+| Cursor | `~/.cursor/skills/` | `skills/` |
+| Claude | `~/.claude/skills/` | `skills/` |
+| Codex | `~/.agents/skills/` | `skills/` |
+| WorkBuddy | `~/.workbuddy/skills/` | `skills/` |
+| CodeBuddy | `~/.codebuddy/skills/` | `skills/` |
+| Qoder | `~/.qoder/skills/` | `skills/` |
 
-> **Codex 说明**：官方项目 skill 根是 [`.agents/skills/`](https://developers.openai.com/codex/skills)（跨 Agent 标准路径）。`~/.codex/skills/` 为用户级旧路径仍可读，但 init 不会往 `.codex/skills/` 写项目 skill。
+> **项目级统一 `skills/`**：所有宿主读同一份，不再按宿主分目录；旧路径（`.cursor/skills/` 等）里 CLI 生成的内容会在 init/update 时自动清理。
 >
-> **WorkBuddy / CodeBuddy**：目录不同；`--tools workbuddy` 或 `codebuddy` 会**两边都装**。
+> **Codex 说明**：用户级官方路径为 [`~/.agents/skills/`](https://developers.openai.com/codex/skills)；`~/.codex/skills/` 为旧路径仅清理。
+>
+> **WorkBuddy / CodeBuddy**：用户级目录不同；`--tools workbuddy` 或 `codebuddy` 会**两边都装**。
 
 改 `atlas/flow.yaml` 后刷新门牌 skill：
 
 ```bash
-npx @agileflow/cli update --step-skills-only --root .
+npx @agileflow/cli@latest update --step-skills-only --root .
 ```
 
 ### 开发者（AgileFlow 仓库本身）
 
 - **唯一源**：`skills/agileflow/`（`SKILL.md`、`phases/`、`templates/`、`cli/`、`scripts/`）
 - **勿**在仓库内提交 `.cursor/.claude/.agents/.workbuddy/.codebuddy/.qoder/skills/` 副本（已 gitignore）；改源后跑 `npm run test:cli` 验证生成
-- 用户/项目侧仍用 `npx @agileflow/cli init` 把 skill materialize 到各宿主目录
+- 用户/项目侧仍用 `npx @agileflow/cli@latest init` 把 skill materialize 到各宿主目录
 
 **管辖边界**：只有 `atlas/flow.yaml` 的 `steps[]` 受 `AF_STEP`/主链闸门管理；`/af`（自动路由）、`/af-init`、`/af-explore`、快捷 `/af-fix`… 不进 flow steps。详见 [majorflow.md §管辖边界](majorflow.md#管辖边界铁律)。
 
@@ -91,11 +94,13 @@ npx @agileflow/cli update --step-skills-only --root .
 
 ```bash
 git clone https://github.com/aiKeeo/AgileFlow.git
-cp -r AgileFlow/skills/agileflow YOUR_PROJECT/.cursor/skills/
-node YOUR_PROJECT/.cursor/skills/agileflow/scripts/validate-atlas.mjs --bootstrap-scaffold --root YOUR_PROJECT
+cp -r AgileFlow/skills/agileflow YOUR_PROJECT/skills/
+node YOUR_PROJECT/skills/agileflow/scripts/validate-atlas.mjs --bootstrap-scaffold --root YOUR_PROJECT
 ```
 
 > 勿使用裸命令 `npx agileflow`（npm 上另有同名无关包）。请用 **`npx @agileflow/cli`**。
+>
+> **为什么 init/update 要带 `@latest`**：npx 首次运行后会把包缓存在 `~/.npm/_npx`，之后一直复用旧版；显式写 `@latest` 才会每次重新解析 dist-tag 拉最新版。已装到项目里的 `agileflow gate/log` 不受影响（跑的是项目内副本，版本应与 skill 一致）。CLI 自带新版提醒（后台探测、不阻塞；`AGILEFLOW_NO_UPDATE_CHECK=1` 可关）。
 
 ### Run 状态与可信回执
 
@@ -119,7 +124,7 @@ agileflow run abandon --reason "flow 已变更" --root .
 
 ```bash
 npx @agileflow/cli gate --bootstrap-scaffold --root .
-# 兼容：node .cursor/skills/agileflow/scripts/validate-atlas.mjs --bootstrap-scaffold --root .
+# 兼容：node skills/agileflow/scripts/validate-atlas.mjs --bootstrap-scaffold --root .
 ```
 
 **首条 Agent 回复**须写 `agileflow.env` 的 `AF_HOST_CAPABILITY=full|degraded`（据 tool list；`pending` 跑 gate 会红）。
@@ -138,7 +143,7 @@ npx @agileflow/cli gate --bootstrap-scaffold --root .
 | 你想做 | 怎么做 | 生效 |
 |--------|--------|------|
 | 改角色提示词 | 编辑 `atlas/role/role-*.md` | 下次派活用全文；该阶段**文档格式**闸门跳过；ORCH/`write-code` 等仍硬挡 |
-| 加流程步 | 在 `atlas/flow.yaml` 插入 `id: af-xxx`（**必须** `af-` 前缀）+ `prompt` + depends/outputs | `npx @agileflow/cli update --step-skills-only` → 生成各宿主 `skills/af-xxx/SKILL.md` |
+| 加流程步 | 在 `atlas/flow.yaml` 插入 `id: af-xxx`（**必须** `af-` 前缀）+ `prompt` + depends/outputs | `npx @agileflow/cli@latest update --step-skills-only` → 生成各宿主 `skills/af-xxx/SKILL.md` |
 | `prompt` 写法 | 短名 `req`/`model`/`sol`/`dev`；`null` 总控直做；或路径 `atlas/role/role-xxx.md`（文件须已存在） | 路径 = 自定义角色提示词，不是门牌 id |
 | 刷新门牌 | `update --step-skills-only` | 按当前 flow 增删各宿主 `skills/af-*/SKILL.md`；改 flow 后还须 abandon/start Run |
 

@@ -1,6 +1,6 @@
 {
   "name": "@agileflow/cli",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "AgileFlow CLI：init 挂载门牌 skill + validate-atlas 闸门",
   "type": "module",
   "bin": {
@@ -28,6 +28,7 @@
     "cli/runtime-command.mjs",
     "cli/step-sync.mjs",
     "cli/sync-skill-tree.mjs",
+    "cli/update-check.mjs",
     "scripts/fe-pixel",
     "scripts/runtime",
     "scripts/validate-atlas.mjs",

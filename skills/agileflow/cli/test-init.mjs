@@ -7,9 +7,12 @@ import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { isNewerVersion } from './update-check.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const bin = path.join(__dirname, '..', 'bin', 'agileflow.mjs');
+// 测试中禁用新版探测（不联网、不派后台进程）
+process.env.AGILEFLOW_NO_UPDATE_CHECK = '1';
 
 function run(args, cwd) {
   const r = spawnSync(process.execPath, [bin, ...args], {
@@ -31,22 +34,34 @@ function assert(cond, msg) {
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'af-cli-'));
 console.log('tmp', tmp);
 
-// 模拟老 skill
+// isNewerVersion 单元断言（新版提醒的比较器）
+assert(isNewerVersion('1.2.0', '1.1.9'), 'isNewerVersion 1.2.0 > 1.1.9');
+assert(!isNewerVersion('1.1.1', '1.1.1'), 'isNewerVersion 同版本 false');
+assert(!isNewerVersion('1.1.0', '1.1.1'), 'isNewerVersion 旧版本 false');
+assert(!isNewerVersion('', '1.1.1'), 'isNewerVersion 空入参 false');
+
+// 模拟项目内旧 skill（统一 skills/）
+fs.mkdirSync(path.join(tmp, 'skills', 'agileflow'), { recursive: true });
+fs.writeFileSync(path.join(tmp, 'skills', 'agileflow', 'OLD.txt'), 'old');
+// 模拟旧宿主路径安装（CLI 同步标记）+ 历史 .bak 污染
 fs.mkdirSync(path.join(tmp, '.cursor', 'skills', 'agileflow'), { recursive: true });
-fs.writeFileSync(path.join(tmp, '.cursor', 'skills', 'agileflow', 'OLD.txt'), 'old');
+fs.writeFileSync(path.join(tmp, '.cursor', 'skills', 'agileflow', '.agileflow-installed.json'), '{}');
+fs.mkdirSync(path.join(tmp, '.cursor', 'skills', 'agileflow.bak-2026-01-01T00-00-00-000Z'), { recursive: true });
+fs.mkdirSync(path.join(tmp, '.claude', 'skills', 'agileflow.bak-2026-01-02T00-00-00-000Z'), { recursive: true });
 
 let r = run(['--help'], tmp);
 assert(r.status === 0, 'help exit 0');
 assert((r.stdout || '').includes('@agileflow/cli'), 'help 含包名');
 assert((r.stdout || '').includes('--step-skills-only'), 'help 含 step-skills-only');
 assert((r.stdout || '').includes('run abandon'), 'help 含 run abandon');
-
 assert((r.stdout || '').includes('无 --root'), 'help 说明无 root 为 user init');
+assert((r.stdout || '').includes('{项目}/skills/') || (r.stdout || '').includes('skills/'), 'help 说明项目级 skills/');
+assert((r.stdout || '').includes('@agileflow/cli@latest'), 'help 示例带 @latest（绕过 npx 旧缓存）');
 
 // 用户级 init（隔离 HOME）
 const fakeHome = path.join(tmp, 'fakehome');
 fs.mkdirSync(fakeHome, { recursive: true });
-r = spawnSync(process.execPath, [bin, 'init', '--force'], {
+r = spawnSync(process.execPath, [bin, 'init'], {
   cwd: tmp,
   encoding: 'utf8',
   env: { ...process.env, HOME: fakeHome, USERPROFILE: fakeHome },
@@ -63,33 +78,42 @@ assert(fs.existsSync(path.join(fakeHome, '.workbuddy', 'skills', 'agileflow', 'S
 assert(fs.existsSync(path.join(fakeHome, '.codebuddy', 'skills', 'af', 'SKILL.md')), 'user codebuddy doorplate');
 assert(!fs.existsSync(path.join(tmp, 'atlas', 'agileflow-cli.json')), 'user init 不写项目 cli.json');
 
-// 项目级 init
-r = run(['init', '--tools', 'cursor,claude,codex,workbuddy,qoder', '--root', tmp, '--force'], tmp);
+// 项目级 init：无需 --force；只装到 skills/
+r = run(['init', '--root', tmp], tmp);
 if (r.status !== 0) {
   console.error('init stdout', r.stdout);
   console.error('init stderr', r.stderr);
   console.error('init error', r.error);
 }
 assert(r.status === 0, 'project init exit 0');
-assert(fs.existsSync(path.join(tmp, '.cursor', 'skills', 'af-req', 'SKILL.md')), 'cursor af-req SKILL.md');
-assert(fs.existsSync(path.join(tmp, '.cursor', 'skills', 'af', 'SKILL.md')), 'cursor af default router SKILL.md');
-assert(fs.existsSync(path.join(tmp, '.cursor', 'skills', 'agileflow', 'SKILL.md')), 'cursor agileflow skill');
-assert(fs.existsSync(path.join(tmp, '.cursor', 'skills', 'agileflow', 'scripts', 'validate-atlas.mjs')), 'validate script');
+assert(fs.existsSync(path.join(tmp, 'skills', 'af-req', 'SKILL.md')), 'skills/af-req SKILL.md');
+assert(fs.existsSync(path.join(tmp, 'skills', 'af', 'SKILL.md')), 'skills/af SKILL.md');
+assert(fs.existsSync(path.join(tmp, 'skills', 'agileflow', 'SKILL.md')), 'skills/agileflow skill');
+assert(!fs.existsSync(path.join(tmp, 'skills', 'agileflow', 'OLD.txt')), '默认已删旧 skill 残留');
+assert(
+  !fs.readdirSync(path.join(tmp, 'skills')).some((n) => n.startsWith('agileflow.bak-')),
+  '默认不留 agileflow.bak-*',
+);
+assert((r.stdout || '').includes('skills/') || (r.stdout || '').includes('已删除旧'), 'init 输出说明项目 skills/');
+assert(fs.existsSync(path.join(tmp, 'skills', 'agileflow', 'scripts', 'validate-atlas.mjs')), 'validate script');
+assert(!fs.existsSync(path.join(tmp, '.cursor', 'skills', 'agileflow', 'SKILL.md')), '项目级不写 .cursor/skills');
+assert(!fs.existsSync(path.join(tmp, '.cursor', 'skills', 'agileflow')), '旧 .cursor/skills/agileflow 已清理');
+assert(
+  !fs.existsSync(path.join(tmp, '.cursor', 'skills', 'agileflow.bak-2026-01-01T00-00-00-000Z')),
+  '旧 .cursor 下 agileflow.bak-* 已清理',
+);
+assert(
+  !fs.existsSync(path.join(tmp, '.claude', 'skills', 'agileflow.bak-2026-01-02T00-00-00-000Z')),
+  '被去重宿主（claude）旧 bak 也清理',
+);
+assert(!fs.existsSync(path.join(tmp, '.claude', 'skills', 'agileflow', 'SKILL.md')), '项目级不写 .claude/skills');
 assert(!fs.existsSync(path.join(tmp, '.cursor', 'commands', 'af-req.md')), '无 legacy cursor command');
-assert(fs.existsSync(path.join(tmp, '.claude', 'skills', 'af-req', 'SKILL.md')), 'claude af-req SKILL.md');
-assert(fs.existsSync(path.join(tmp, '.agents', 'skills', 'af-dev', 'SKILL.md')), 'codex af-dev SKILL.md (.agents/skills)');
-assert(!fs.existsSync(path.join(tmp, '.codex', 'skills', 'af-dev', 'SKILL.md')), 'codex 不写 .codex/skills');
-assert(fs.existsSync(path.join(tmp, '.codebuddy', 'skills', 'af-fix', 'SKILL.md')), 'codebuddy af-fix SKILL.md');
-assert(fs.existsSync(path.join(tmp, '.workbuddy', 'skills', 'af-fix', 'SKILL.md')), 'workbuddy af-fix SKILL.md');
-assert(fs.existsSync(path.join(tmp, '.workbuddy', 'skills', 'agileflow', 'SKILL.md')), 'workbuddy agileflow skill');
-assert(fs.existsSync(path.join(tmp, '.qoder', 'skills', 'af-req', 'SKILL.md')), 'qoder af-req SKILL.md');
-assert(fs.existsSync(path.join(tmp, '.qoder', 'skills', 'agileflow', 'SKILL.md')), 'qoder agileflow skill');
 assert(fs.existsSync(path.join(tmp, 'atlas', 'agileflow-cli.json')), 'cli.json');
 
 const cliJson = JSON.parse(fs.readFileSync(path.join(tmp, 'atlas', 'agileflow-cli.json'), 'utf8'));
 assert(cliJson.delivery === 'skills', 'delivery=skills');
 
-const reqBody = fs.readFileSync(path.join(tmp, '.cursor', 'skills', 'af-req', 'SKILL.md'), 'utf8');
+const reqBody = fs.readFileSync(path.join(tmp, 'skills', 'af-req', 'SKILL.md'), 'utf8');
 assert(reqBody.includes('generated by @agileflow/cli'), 'generated mark');
 assert(reqBody.includes('name: af-req'), 'frontmatter name');
 assert(reqBody.includes('req-confirm'), 'req-confirm');
@@ -99,12 +123,12 @@ assert(!/手打 `req:/.test(reqBody) && !reqBody.includes('等同 req:'), '无�
 assert(reqBody.includes('flow.yaml'), 'flow 门牌含 flow.yaml');
 assert(reqBody.includes('stepId=`af-req`') || reqBody.includes('stepId=af-req'), 'flow 门牌含 stepId');
 
-const fixBody = fs.readFileSync(path.join(tmp, '.codebuddy', 'skills', 'af-fix', 'SKILL.md'), 'utf8');
+const fixBody = fs.readFileSync(path.join(tmp, 'skills', 'af-fix', 'SKILL.md'), 'utf8');
 assert(fixBody.includes('非 flow 步') || fixBody.includes('快捷'), 'quick 门牌声明非 flow');
 assert(!fixBody.includes('agileflow-dispatch.json'), 'quick 无台账');
 assert(!fixBody.includes('write-code'), 'quick 无 write-code');
 
-const afBody = fs.readFileSync(path.join(tmp, '.cursor', 'skills', 'af', 'SKILL.md'), 'utf8');
+const afBody = fs.readFileSync(path.join(tmp, 'skills', 'af', 'SKILL.md'), 'utf8');
 assert(afBody.includes('自动路由') || afBody.includes('万能'), 'af 门牌声明自动路由');
 assert(!afBody.includes('探索支路（非 flow 步）'), 'af 门牌 description 不应标为探索支路');
 assert(afBody.includes('非 flow') || afBody.includes('非 flow 步'), 'af 门牌非 flow');
@@ -113,11 +137,9 @@ assert(afBody.includes('skill 根'), 'af 门牌含 skill 根定位');
 assert(afBody.includes('agileflow skill 根'), 'af 门牌 Read 指向 skill 根');
 assert(!afBody.includes('Read 项目内 **agileflow** skill'), 'af 门牌不再写「项目内」误导路径');
 assert(cliJson.scopes?.af?.scope === 'routing', 'cli.json scopes af routing');
+assert(afBody.includes('同级') && afBody.includes('agileflow'), 'af 门牌说明同级 agileflow');
 
-const qoderAf = fs.readFileSync(path.join(tmp, '.qoder', 'skills', 'af', 'SKILL.md'), 'utf8');
-assert(qoderAf.includes('同级') && qoderAf.includes('agileflow'), 'qoder af 门牌说明同级 agileflow');
-
-const testsBody = fs.readFileSync(path.join(tmp, '.cursor', 'skills', 'af-tests', 'SKILL.md'), 'utf8');
+const testsBody = fs.readFileSync(path.join(tmp, 'skills', 'af-tests', 'SKILL.md'), 'utf8');
 assert(testsBody.includes('af-test'), 'af-tests alias 指向 af-test');
 assert(testsBody.includes('stepId=`af-test`') || testsBody.includes('stepId=af-test'), 'af-tests 台账用 af-test');
 
@@ -162,11 +184,8 @@ steps:
 );
 r = run(['update', '--step-skills-only', '--root', tmp], tmp);
 assert(r.status === 0, '非法 id 时 update 仍成功（跳过）');
-assert(!fs.existsSync(path.join(tmp, '.cursor', 'skills', 'af-../evil', 'SKILL.md')), '无路径穿越门牌');
-assert(
-  !fs.readdirSync(path.join(tmp, '.cursor', 'skills')).some((n) => n.includes('evil')),
-  '无 evil 门牌目录',
-);
+assert(!fs.existsSync(path.join(tmp, 'skills', 'af-../evil', 'SKILL.md')), '无路径穿越门牌');
+assert(!fs.readdirSync(path.join(tmp, 'skills')).some((n) => n.includes('evil')), '无 evil 门牌目录');
 
 // 自定义 flow + step-skills-only
 const flowPath = path.join(tmp, 'atlas', 'flow.yaml');
@@ -192,7 +211,7 @@ steps:
 
 r = run(['update', '--step-skills-only', '--root', tmp], tmp);
 assert(r.status === 0, 'update --step-skills-only');
-assert(fs.existsSync(path.join(tmp, '.cursor', 'skills', 'af-research', 'SKILL.md')), 'af-research 生成');
+assert(fs.existsSync(path.join(tmp, 'skills', 'af-research', 'SKILL.md')), 'af-research 生成');
 
 // --commands-only 别名仍可用
 r = run(['update', '--commands-only', '--root', tmp], tmp);
@@ -215,7 +234,7 @@ steps:
 );
 r = run(['update', '--step-skills-only', '--root', tmp], tmp);
 assert(r.status === 0, 'update prune');
-assert(!fs.existsSync(path.join(tmp, '.cursor', 'skills', 'af-research', 'SKILL.md')), 'af-research 已删');
+assert(!fs.existsSync(path.join(tmp, 'skills', 'af-research', 'SKILL.md')), 'af-research 已删');
 
 // 旧 command 迁移清理
 const legacyCmd = path.join(tmp, '.cursor', 'commands', 'af-req.md');

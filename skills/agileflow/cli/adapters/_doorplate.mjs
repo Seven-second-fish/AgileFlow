@@ -112,7 +112,7 @@ function isCliSyncedAgileflow(dir) {
 }
 
 /**
- * 删除某 skills 根下 CLI 生成的 agileflow 树与门牌（用于 Codex .codex → .agents 迁移）
+ * 删除某 skills 根下 CLI 生成的 agileflow 树、历史 .bak 与门牌（宿主路径迁移用）
  * @param {string} skillsRoot
  */
 export function cleanupLegacyGeneratedSkills(skillsRoot) {
@@ -127,6 +127,13 @@ export function cleanupLegacyGeneratedSkills(skillsRoot) {
   }
 
   for (const name of fs.readdirSync(root, { withFileTypes: true })) {
+    // agileflow.bak-*：旧版 CLI 重装备份（命名为 CLI 独有），会污染宿主 skill 菜单
+    if (name.isDirectory() && name.name.startsWith('agileflow.bak-')) {
+      const bakDir = path.join(root, name.name);
+      fs.rmSync(bakDir, { recursive: true, force: true });
+      removed.push(bakDir);
+      continue;
+    }
     if (!name.isDirectory() || !name.name.startsWith('af-')) continue;
     const dir = path.join(root, name.name);
     const skillMd = path.join(dir, 'SKILL.md');

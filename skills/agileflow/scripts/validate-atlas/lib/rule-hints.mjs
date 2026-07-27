@@ -199,6 +199,10 @@ export const RULE_HINTS = {
     plain: '未派 Subagent 或未记派活台账：总控禁止包办 REQ/model/sol/dev',
     who: 'ai',
   },
+  'ORCH-NO-DEV-ARTIFACT': {
+    plain: '已有业务源码却无 atlas/dev/T-*.md：须先派 role-dev 落盘构思再写码',
+    who: 'ai',
+  },
   'AF-CMD-MISSING': {
     plain: '缺 atlas/logs/af-commands.md（/af* 须在 gate 前显式留痕）',
     who: 'ai',
@@ -264,7 +268,7 @@ export const RULE_HINTS = {
     who: 'ai',
   },
   'AF-SKILL-SKEW': {
-    plain: '项目 skill 副本版本 ≠ 当前闸门；init --force 同步',
+    plain: '项目 skill 副本版本 ≠ 当前闸门；init --root . 重装同步',
     who: 'ai',
   },
   'ORCH-NO-SUBAGENT-ID': {

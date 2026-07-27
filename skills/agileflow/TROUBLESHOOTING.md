@@ -37,7 +37,7 @@
 | `TODO-CHECK-②无写码证据` | 空勾② | AI | 先 `write-code` 绿再写码；或已有 backend/frontend |
 | `ORCH-FAKE-SUBAGENT-ID` / `ORCH-DIRECT-FORBIDDEN` | 假 ID 或 orch-direct 包办 req/sol/dev | AI | 真派 Task；抄回真实 subagentId |
 | `ORCH-DEGRADED-UNPROVEN` | 有 .cursor 却口头 degraded | AI | 真无 Task 才写 `atlas/logs/af-allow-degraded.md` |
-| `AF-SKILL-SKEW` | 项目 skill 副本落后于当前闸门 | AI | `npx @agileflow/cli init --force --root .` 或设 `AGILEFLOW_SKILL_ROOT` |
+| `AF-SKILL-SKEW` | 项目 skill 副本落后于当前闸门 | AI | `npx @agileflow/cli@latest init --root .`（默认先删旧再装）或设 `AGILEFLOW_SKILL_ROOT` |
 | `REQ-TITLE-SUBSTANCE` / 自创 REQ 大纲 | 标题写 666；或用「## 1. 概述」冒充模板 | AI | 按 `templates/req.md`：`# [REQ-xxx] 名` + `## 范围提示` + BDD 8 列 AC |
 | `REQ-SCOPE-MINLEN` / `REQ-AC-MIN-ROWS` / `REQ-AC-CELL-MINLEN` | 范围内外/AC 注水过短 | AI | 范围内外各≥16字；AC≥2行；Then 含可观测断言 |
 | `ORCH-DEGRADED-NO-ENTRIES` / `ORCH-DEGRADED-ALLOW-THIN` | degraded 空台账或 allow 文件糊弄 | AI | orch-direct+paths 覆盖产物；allow 写明无 Task |

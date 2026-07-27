@@ -24,6 +24,26 @@ import { hostSkillsRoot, hostAgileflowDir, hostLegacySkillRoots, HOSTS } from '.
  */
 
 /**
+ * 清理某宿主的旧 command / 旧 skills 路径（含 agileflow.bak-*）；与安装解耦，可单独调用
+ * @param {string} installRoot
+ * @param {import('./_host.mjs').HostId} hostId
+ * @param {import('./_host.mjs').InstallScope} scope
+ * @returns {string[]}
+ */
+export function cleanupHostLegacy(installRoot, hostId, scope) {
+  const hostMeta = HOSTS[hostId];
+  if (!hostMeta) return [];
+  const legacyRemoved = [];
+  if (scope === 'project' && hostMeta.legacyCommandHost) {
+    legacyRemoved.push(...cleanupLegacyCommands(installRoot, hostMeta.legacyCommandHost));
+  }
+  for (const legacyRoot of hostLegacySkillRoots(hostId, scope, installRoot)) {
+    legacyRemoved.push(...cleanupLegacyGeneratedSkills(legacyRoot));
+  }
+  return legacyRemoved;
+}
+
+/**
  * @param {InstallHostOpts} opts
  */
 export function installHost(opts) {
@@ -44,14 +64,7 @@ export function installHost(opts) {
     doorplate = installDoorplateSkills({ skillsRoot, catalog: opts.catalog, force });
   }
 
-  const hostMeta = HOSTS[opts.hostId];
-  const legacyRemoved = [];
-  if (scope === 'project' && hostMeta.legacyCommandHost) {
-    legacyRemoved.push(...cleanupLegacyCommands(installRoot, hostMeta.legacyCommandHost));
-  }
-  for (const legacyRoot of hostLegacySkillRoots(opts.hostId, scope, installRoot)) {
-    legacyRemoved.push(...cleanupLegacyGeneratedSkills(legacyRoot));
-  }
+  const legacyRemoved = cleanupHostLegacy(installRoot, opts.hostId, scope);
 
   return {
     skillDir,

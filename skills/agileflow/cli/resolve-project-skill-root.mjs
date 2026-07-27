@@ -22,8 +22,9 @@ function candidatesUnder(base, rels) {
   return rels.map((rel) => path.join(path.resolve(base), ...rel, 'agileflow'));
 }
 
-/** 项目内各宿主 */
+/** 项目内：优先统一 skills/，再兼容旧宿主路径 */
 const PROJECT_SKILL_DIRS = [
+  ['skills'],
   ['.cursor', 'skills'],
   ['.claude', 'skills'],
   ['.agents', 'skills'],
@@ -34,7 +35,15 @@ const PROJECT_SKILL_DIRS = [
 ];
 
 /** 用户 HOME 各宿主（与 init 无 --root 一致） */
-const USER_SKILL_DIRS = PROJECT_SKILL_DIRS;
+const USER_SKILL_DIRS = [
+  ['.cursor', 'skills'],
+  ['.claude', 'skills'],
+  ['.agents', 'skills'],
+  ['.codex', 'skills'],
+  ['.workbuddy', 'skills'],
+  ['.codebuddy', 'skills'],
+  ['.qoder', 'skills'],
+];
 
 /**
  * @param {string} [projectRoot]

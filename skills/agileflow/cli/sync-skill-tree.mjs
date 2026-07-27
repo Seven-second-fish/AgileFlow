@@ -77,22 +77,37 @@ function populateSkillTree(packageRoot, destDir) {
  * @param {{ packageRoot?: string, destDir: string, backup?: boolean }} opts
  */
 export function syncSkillTree(opts) {
-  const packageRoot = opts.packageRoot || PACKAGE_ROOT;
+  const packageRoot = path.resolve(opts.packageRoot || PACKAGE_ROOT);
   const destDir = path.resolve(opts.destDir);
+  // 目标即源码（在 AgileFlow 仓库自身 init --root .）：跳过，避免先删后装毁掉唯一源
+  if (destDir === packageRoot) return;
   const backup = opts.backup !== false;
   fs.mkdirSync(path.dirname(destDir), { recursive: true });
 
-  let bak = null;
-  if (backup && fs.existsSync(destDir)) {
-    bak = `${destDir}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
-    fs.renameSync(destDir, bak);
-  } else if (fs.existsSync(destDir)) {
-    fs.rmSync(destDir, { recursive: true, force: true });
-  }
-
+  // 先建临时目录，成功后才动旧目录（不留 .bak 时也不会中途丢旧版）
   const tmp = `${destDir}.tmp-${process.pid}-${Date.now()}`;
   try {
     populateSkillTree(packageRoot, tmp);
+  } catch (err) {
+    try {
+      if (fs.existsSync(tmp)) fs.rmSync(tmp, { recursive: true, force: true });
+    } catch {
+      /* ignore */
+    }
+    throw err;
+  }
+
+  let bak = null;
+  if (fs.existsSync(destDir)) {
+    if (backup) {
+      bak = `${destDir}.bak-${new Date().toISOString().replace(/[:.]/g, '-')}`;
+      fs.renameSync(destDir, bak);
+    } else {
+      fs.rmSync(destDir, { recursive: true, force: true });
+    }
+  }
+
+  try {
     fs.renameSync(tmp, destDir);
   } catch (err) {
     try {

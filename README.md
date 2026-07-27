@@ -22,7 +22,7 @@
 </p>
 
 ```bash
-npx @agileflow/cli init
+npx @agileflow/cli@latest init
 /af build an order API with WeChat and Alipay refunds — you decide the rest
 ```
 
@@ -88,7 +88,7 @@ Requires Node.js 20+.
 
 ```bash
 # User-level: install once for Cursor / Claude / Codex / Qoder / WorkBuddy / CodeBuddy
-npx @agileflow/cli init
+npx @agileflow/cli@latest init
 ```
 
 Reload the host, then in chat:
@@ -110,7 +110,7 @@ Project-only install:
 
 ```bash
 cd YOUR_PROJECT
-npx @agileflow/cli init --root . --tools cursor,codex
+npx @agileflow/cli@latest init --root .   # → {project}/skills/ (single copy, shared by all hosts)
 npx @agileflow/cli gate --bootstrap-scaffold --root .
 ```
 
@@ -269,7 +269,7 @@ steps:
 After editing flow, **refresh doorplates** so hosts get `/af-security-review`:
 
 ```bash
-npx @agileflow/cli update --step-skills-only --root .
+npx @agileflow/cli@latest update --step-skills-only --root .
 # → creates/updates .cursor|claude|…/skills/af-security-review/SKILL.md
 # → removes doorplates for custom steps deleted from flow
 ```
@@ -292,8 +292,8 @@ Orchestration, `write-code` prerequisites, and Runtime receipt rules do not vani
 <summary>Common CLI</summary>
 
 ```bash
-npx @agileflow/cli init
-npx @agileflow/cli update --step-skills-only --root .
+npx @agileflow/cli@latest init
+npx @agileflow/cli@latest update --step-skills-only --root .
 npx @agileflow/cli run status --json --root .
 npx @agileflow/cli gate --gate write-code --root .
 npx @agileflow/cli run gate-status --gate req-confirm --json --root .

@@ -2,7 +2,7 @@
 /**
  * Agileflow atlas/ 校验 CLI + AI 流程闸门
  *
- * 用法（skill 可装在项目 .cursor/skills 或 ~/.cursor/skills；可用 AGILEFLOW_SKILL_ROOT）:
+ * 用法（skill 可装在项目 skills/、旧路径 .cursor/skills 或 ~/.cursor/skills；可用 AGILEFLOW_SKILL_ROOT）:
  *   node <skill>/scripts/validate-atlas.mjs --gate sol-confirm --root .
  *   node <skill>/scripts/validate-atlas.mjs --bootstrap-scaffold --root .
  *   node <skill>/scripts/validate-atlas.mjs --refresh-role-baseline --root .

@@ -8,7 +8,7 @@ const BUNDLED_SKILL_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 /**
  * 解析 agileflow skill 根目录（可移植，禁止写死唯一相对路径）
- * 优先级：AGILEFLOW_SKILL_ROOT → 本脚本所在 skill → 项目 .cursor/skills/agileflow → ~/.cursor/skills/agileflow
+ * 优先级：AGILEFLOW_SKILL_ROOT → 本脚本所在 skill → 项目 skills/agileflow → 旧路径 .cursor/skills/agileflow → ~/.cursor/skills/agileflow
  * @param {string} [projectRoot]
  * @returns {string}
  */
@@ -22,9 +22,12 @@ export function resolveSkillRoot(projectRoot = process.cwd()) {
     return BUNDLED_SKILL_ROOT;
   }
 
-  const projectSkill = path.join(projectRoot, '.cursor', 'skills', 'agileflow');
-  if (exists(path.join(projectSkill, 'scripts', 'validate-atlas.mjs'))) {
-    return projectSkill;
+  // 项目级统一 skills/；旧安装仍可能在 .cursor/skills/
+  for (const rel of [['skills'], ['.cursor', 'skills']]) {
+    const projectSkill = path.join(projectRoot, ...rel, 'agileflow');
+    if (exists(path.join(projectSkill, 'scripts', 'validate-atlas.mjs'))) {
+      return projectSkill;
+    }
   }
 
   const home = process.env.USERPROFILE || process.env.HOME || '';

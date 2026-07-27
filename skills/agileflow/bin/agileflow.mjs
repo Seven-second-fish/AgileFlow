@@ -8,6 +8,7 @@ import path from 'node:path';
 import { assertRootFlag, parseArgv, toValidateArgs } from '../cli/parse-argv.mjs';
 import { resolveProjectSkillRoot } from '../cli/resolve-project-skill-root.mjs';
 import { readPackageMeta } from '../cli/package-meta.mjs';
+import { maybeNotifyUpdate } from '../cli/update-check.mjs';
 import {
   recordRuntimeGateReceipt,
   runtimeGateStatus,
@@ -30,8 +31,9 @@ ${name} v${version}  (bin: agileflow)
 
 用法:
   agileflow init [--root 项目目录] [--tools cursor,claude,codex,workbuddy,codebuddy,qoder] [--force]
-    无 --root：装到用户 HOME，默认全部宿主（最轻量）
-    有 --root：装到该项目，--tools 指定宿主（默认 cursor）
+    无 --root：全局/用户级 → ~/ 下各宿主 skills（.cursor/.claude/…）
+    有 --root：项目级 → 只装到 {项目}/skills/（agileflow + af-* 全在这）
+    默认先删旧 agileflow 再写入（--force 可省略，兼容旧用法）
   agileflow update [--root .] [--step-skills-only] [--skill-sync] [--tools …]
   agileflow gate|--gate …     运行只读 validator，并按最终结果提交对应回执
   agileflow log --door /af-req --summary … --route req [--root .]
@@ -48,8 +50,8 @@ ${name} v${version}  (bin: agileflow)
   agileflow --help
 
 示例:
-  npx @agileflow/cli init
-  npx @agileflow/cli init --root . --tools cursor,codex
+  npx @agileflow/cli@latest init          # 带 @latest 才会绕过 npx 旧缓存
+  npx @agileflow/cli@latest init --root .
   agileflow gate --gate write-code --root .
   agileflow log /af-req 做一个登录 --route req --root .
   agileflow update --step-skills-only --root .
@@ -168,6 +170,7 @@ async function main() {
       runGate(skillRoot, toValidateArgs(parsed, { defaultRoot: root }));
       return;
     }
+    maybeNotifyUpdate(readPackageMeta().version);
     printHelp();
     process.exit(0);
   }
@@ -176,11 +179,13 @@ async function main() {
   const root = path.resolve(String(flags.root || process.cwd()));
 
   if (cmd === 'init') {
+    maybeNotifyUpdate(readPackageMeta().version);
     const { runInit } = await import('../cli/init.mjs');
     await runInit(argv.slice(1));
     return;
   }
   if (cmd === 'update') {
+    maybeNotifyUpdate(readPackageMeta().version);
     const { runUpdate } = await import('../cli/init.mjs');
     await runUpdate(argv.slice(1));
     return;

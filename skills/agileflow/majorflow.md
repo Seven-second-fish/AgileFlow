@@ -214,7 +214,7 @@ AI 容易幻觉、不听指挥、空跑冒充完成，于是加了三层加固�
 | **质量线** | dev 唯一完整档：叙述五段式 + 逻辑块怎么做编号；`AF_TIER=full` 不减厚度 |
 | **快捷轨** | 已启用 AF 亦可用的轻量通道（非豁免） |
 | **豁免** | 仅未启用 AF 的问答/微型/hotfix；灰区 AskQuestion |
-| **CLI / 门牌 skill** | `npx @agileflow/cli init` 装 `skills/agileflow` + `skills/af-*`；改 flow 后 `update --step-skills-only`；闸门 `agileflow gate` |
+| **CLI / 门牌 skill** | `npx @agileflow/cli@latest init` 装 `skills/agileflow` + `skills/af-*`；改 flow 后 `update --step-skills-only`；闸门 `agileflow gate` |
 | **薄总控 / 厚角色** | `SKILL.md` 只路由+裁决+≤15 红线；写法在 role layers / phases |
 | **正确做法与红线** | 正向节奏优先；踩线列 ≤15 条（orchestrator SSOT），不堆禁令 |
 | **纠偏 L0–L3** | 中途发现不对先判级再动作；禁止硬扛继续写码 |

@@ -22,7 +22,7 @@
 </p>
 
 ```bash
-npx @agileflow/cli init
+npx @agileflow/cli@latest init
 /af 做一个支持微信和支付宝退款的订单 API，后面都你定
 ```
 
@@ -88,7 +88,7 @@ AI   → 读 flow.yaml · env · todo · 当前 Run，从断点继续
 
 ```bash
 # 用户级：一次装到 Cursor / Claude / Codex / Qoder / WorkBuddy / CodeBuddy
-npx @agileflow/cli init
+npx @agileflow/cli@latest init
 ```
 
 重启或重新加载对应宿主后，在聊天里发：
@@ -110,7 +110,7 @@ npx @agileflow/cli init
 
 ```bash
 cd YOUR_PROJECT
-npx @agileflow/cli init --root . --tools cursor,codex
+npx @agileflow/cli@latest init --root .   # → {项目}/skills/（单份，各宿主共用）
 npx @agileflow/cli gate --bootstrap-scaffold --root .
 ```
 
@@ -269,7 +269,7 @@ steps:
 改完 flow **必须刷门牌**，宿主才会出现 `/af-security-review`：
 
 ```bash
-npx @agileflow/cli update --step-skills-only --root .
+npx @agileflow/cli@latest update --step-skills-only --root .
 # → 生成/更新 .cursor|claude|…/skills/af-security-review/SKILL.md
 # → flow 里删掉的自定义步，对应门牌也会被清掉
 ```
@@ -292,8 +292,8 @@ npx @agileflow/cli run start --change security-review --step af-req --root .
 <summary>常用 CLI</summary>
 
 ```bash
-npx @agileflow/cli init
-npx @agileflow/cli update --step-skills-only --root .
+npx @agileflow/cli@latest init
+npx @agileflow/cli@latest update --step-skills-only --root .
 npx @agileflow/cli run status --json --root .
 npx @agileflow/cli gate --gate write-code --root .
 npx @agileflow/cli run gate-status --gate req-confirm --json --root .

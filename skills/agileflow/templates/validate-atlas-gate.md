@@ -2,7 +2,8 @@
 
 > **实现**：`scripts/validate-atlas/`（随 skill 安装）· 规范：`lib/phase-spec.mjs`
 > **硬挡**：error 与 warn **同等失败**（exit ≠ 0）。没有「可继续知债」。
-> **ORCH-*（派活台账）**：`--gate req-confirm|mod-confirm|sol-confirm|dev-step1-literal|write-code` 验路径覆盖 + 溯源；`dev-complete` / `test-entry` 另做**台账溯源审计**（`subagentId` / dev `taskId`，不重复路径匹配）。`--only req` 等模块单跑**不**验台账，不可替代对应 gate。
+> **ORCH-*（派活台账）**：`--gate req-confirm|mod-confirm|sol-confirm|dev-step1-literal|write-code|dev-complete|test-entry` 验路径覆盖 + **台账溯源审计**（`subagentId` / dev `taskId`）。`write-code` / `dev-complete` / `test-entry` **额外硬验上游**：盘上已有 REQ/model/sol 产物且步未 skip 时，台账须有对应 `role=req|model|sol` + 真 `subagentId`（有源码无 `atlas/dev/T-*.md` → `ORCH-NO-DEV-ARTIFACT`）。`--only req` 等模块单跑**不**验台账，不可替代对应 gate。
+> **禁止概念过闸**：CLI 未装须先 `npx @agileflow/cli` / 本地 bin；**不可**口头「概念 PASS」。`AF_DECIDE=ai` /「你定」只少停点，**不**免派活、不免除 gate。
 > **AF-CMD-*（指令留痕）**：主闸门只读硬验 `atlas/logs/af-commands.md` 的**本步门牌**（`/af-req` 等；裸 `/af` 不算）。须先显式执行 `npx @agileflow/cli log --door /af-… --summary … --route … --root .`；gate 不自动补，FAIL 不得制造 ✅。`AF_DECIDE=ai` **不免**留痕。
 > **REQ 质量硬指标（L1）**：`REQ-TITLE-SUBSTANCE`（禁 666/junk）· `REQ-SCOPE-MINLEN` · `REQ-AC-MIN-ROWS`（≥2）· `REQ-AC-CELL-MINLEN`；禁自创大纲冒充（缺 `## 范围提示` / BDD 表 → `REQ-SCOPE`/`REQ-AC-表头`）。
 > **degraded**：只免真实 `subagentId`，**不免**质量与 paths 覆盖；须 `orch-direct` entries +（有 Cursor/Qoder 时）`af-allow-degraded.md`。
@@ -10,7 +11,7 @@
 > **flow.yaml**：`atlas/flow.yaml` 某步 `skip: true` 时，对应 `req-confirm|mod-confirm|sol-confirm|test-entry` **短路为 PASS**（`FLOW-STEP-SKIP`）；`write-code` / doc-first **不**再硬要已 skip 步的产物。约定 → [flow.md](flow.md)。
 > **ROLE-CUSTOM-SKIP**：`atlas/role/role-*.md` 相对 `.agileflow-role-baseline.json` 已改 → 跳过该阶段**文档格式**闸门（info，不 fail）；**ORCH 仍硬挡**。重置 baseline：`--refresh-role-baseline --root .`
 > **契约也是硬规则**：`user` 该停就停；`ai` 闸门绿该连做就连做——不是可选自觉。
-> **路径**：勿写死 `.cursor/skills/agileflow`。用下方探测或 `AGILEFLOW_SKILL_ROOT`。
+> **路径**：勿写死 `skills/agileflow`。用下方探测或 `AGILEFLOW_SKILL_ROOT`。
 
 ## 闸门覆盖（不过 = 硬挡）
 
@@ -80,7 +81,7 @@ node <skill>/scripts/validate-atlas.mjs --print-cmd --gate sol-confirm --root .
 cd <skill> && npm run validate:sol
 ```
 
-探测顺序：`AGILEFLOW_SKILL_ROOT` → 本脚本所在 skill → 项目 `.cursor/skills/agileflow` → `~/.cursor/skills/agileflow`。
+探测顺序：`AGILEFLOW_SKILL_ROOT` → 本脚本所在 skill → 项目 `skills/agileflow`（旧路径 `.cursor/skills/agileflow` 兼容）→ `~/.cursor/skills/agileflow`。
 
 ## agileflow.env（流程状态 · AI 维护）
 

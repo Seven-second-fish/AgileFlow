@@ -86,7 +86,7 @@ export function warnSkillVersionSkew(projectRoot, reporter) {
   if (runningVer === installed.version) {
     return { skew: false, running: runningVer, installed: installed.version };
   }
-  const msg = `项目 skill 副本 v${installed.version} ≠ 当前执行闸门 v${runningVer} → 弱模型易跟新文档跑旧规则。请 npx @agileflow/cli init --force --root . 或设 AGILEFLOW_SKILL_ROOT 指向新 skill。`;
+  const msg = `项目 skill 副本 v${installed.version} ≠ 当前执行闸门 v${runningVer} → 弱模型易跟新文档跑旧规则。请 npx @agileflow/cli@latest init --root .（默认先删旧再装）或设 AGILEFLOW_SKILL_ROOT 指向新 skill。`;
   if (reporter) {
     reporter.add({
       severity: 'warn',

@@ -39,46 +39,47 @@ export const BUDDY_HOSTS = /** @type {const} */ (['workbuddy', 'codebuddy']);
 export const HOSTS = {
   cursor: {
     label: 'Cursor',
-    projectRel: ['.cursor', 'skills'],
+    // 项目级：统一 {项目根}/skills/；用户级：各宿主目录
+    projectRel: ['skills'],
     userRel: ['.cursor', 'skills'],
     legacyCommandHost: 'cursor',
-    projectLegacySkillRels: [],
+    projectLegacySkillRels: [['.cursor', 'skills']],
     userLegacySkillRels: [],
   },
   claude: {
     label: 'Claude Code',
-    projectRel: ['.claude', 'skills'],
+    projectRel: ['skills'],
     userRel: ['.claude', 'skills'],
     legacyCommandHost: 'claude',
-    projectLegacySkillRels: [],
+    projectLegacySkillRels: [['.claude', 'skills']],
     userLegacySkillRels: [],
   },
   codex: {
     label: 'Codex CLI',
-    projectRel: ['.agents', 'skills'],
+    projectRel: ['skills'],
     userRel: ['.agents', 'skills'],
-    projectLegacySkillRels: [['.codex', 'skills']],
+    projectLegacySkillRels: [['.agents', 'skills'], ['.codex', 'skills']],
     userLegacySkillRels: [['.codex', 'skills']],
   },
   workbuddy: {
     label: 'WorkBuddy',
-    projectRel: ['.workbuddy', 'skills'],
+    projectRel: ['skills'],
     userRel: ['.workbuddy', 'skills'],
-    projectLegacySkillRels: [],
+    projectLegacySkillRels: [['.workbuddy', 'skills']],
     userLegacySkillRels: [],
   },
   codebuddy: {
     label: 'CodeBuddy',
-    projectRel: ['.codebuddy', 'skills'],
+    projectRel: ['skills'],
     userRel: ['.codebuddy', 'skills'],
-    projectLegacySkillRels: [],
+    projectLegacySkillRels: [['.codebuddy', 'skills']],
     userLegacySkillRels: [],
   },
   qoder: {
     label: 'Qoder',
-    projectRel: ['.qoder', 'skills'],
+    projectRel: ['skills'],
     userRel: ['.qoder', 'skills'],
-    projectLegacySkillRels: [],
+    projectLegacySkillRels: [['.qoder', 'skills']],
     userLegacySkillRels: [],
   },
 };
@@ -100,7 +101,8 @@ export function hostSkillsRoot(hostId, scope, installRoot) {
   const host = HOSTS[hostId];
   if (!host) throw new Error(`未知宿主: ${hostId}`);
   const base = scope === 'user' ? os.homedir() : installRoot;
-  const rel = scope === 'user' ? host.userRel : host.projectRel;
+  // 项目级统一 skills/，与 --tools 无关（只装一份）
+  const rel = scope === 'user' ? host.userRel : ['skills'];
   return joinRel(base, rel);
 }
 

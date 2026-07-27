@@ -112,7 +112,7 @@ export function parseToolsList(raw, allTools) {
 }
 
 /**
- * init 落盘目标：无 --root → 用户 HOME + 全部宿主；有 --root → 项目目录 + --tools（默认 cursor）
+ * init 落盘目标：无 --root → 用户 HOME + 全部宿主；有 --root → 项目统一 skills/（tools 仅影响旧路径清理，默认全部）
  * @param {Record<string, string|boolean>} flags
  * @param {readonly string[]} allTools
  */
@@ -131,6 +131,6 @@ export function resolveInitContext(flags, allTools) {
   return {
     scope: /** @type {InstallScope} */ ('project'),
     installRoot: String(flags.root),
-    tools: flags.tools ? parseToolsList(flags.tools, allTools) : ['cursor'],
+    tools: flags.tools ? parseToolsList(flags.tools, allTools) : [...allTools],
   };
 }

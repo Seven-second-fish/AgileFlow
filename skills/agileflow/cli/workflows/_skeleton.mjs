@@ -27,8 +27,8 @@ const SKILL_ROOT_SECTION = `## skill 根（读 phases 前必做）
 \`phases/*\` / \`templates/*\` 相对 **agileflow skill 根**，**不是**当前工作区项目根。按序找，找到即停：
 1. 本会话已加载的 \`af\`/\`af-*\` 门牌目录的**同级** \`agileflow/\`（例：\`…/skills/af\` → Read \`…/skills/agileflow/…\`）
 2. 用户级：\`~/.{cursor,claude,qoder,agents,codex,workbuddy,codebuddy}/skills/agileflow/\`
-3. 项目级：\`{项目根}/.{cursor,claude,qoder,agents,codex,workbuddy,codebuddy}/skills/agileflow/\`
-判定：目录内有 \`SKILL.md\` + \`phases/00-intent-routing.md\`。**找不到 → 换路径重试；禁止以「Glob 工作区搜不到」为由跳过流程写码。** 仍无 → \`npx @agileflow/cli init\`。`;
+3. 项目级：\`{项目根}/skills/agileflow/\`（旧路径 \`{项目根}/.cursor|…/skills/agileflow/\` 仍可探测）
+判定：目录内有 \`SKILL.md\` + \`phases/00-intent-routing.md\`。**找不到 → 换路径重试；禁止以「Glob 工作区搜不到」为由跳过流程写码。** 仍无 → \`npx @agileflow/cli@latest init\`。`;
 
 /**
  * @param {string} rel phase 相对路径

@@ -20,6 +20,7 @@ import { installWorkbuddy, pruneWorkbuddyDoorplates } from './adapters/workbuddy
 import { installCodebuddy, pruneCodebuddyDoorplates } from './adapters/codebuddy.mjs';
 import { installQoder, pruneQoderDoorplates } from './adapters/qoder.mjs';
 import { ALL_HOSTS, expandBuddyHosts, isKnownHost } from './adapters/_host.mjs';
+import { cleanupHostLegacy } from './adapters/_install.mjs';
 import { readPackageMeta } from './package-meta.mjs';
 import { assertRootFlag, parseArgv, resolveInitContext, resolveUpdateModes } from './parse-argv.mjs';
 
@@ -119,6 +120,7 @@ export function readCliJson(projectRoot) {
  */
 function hasInstalledAgileflowSkill(projectRoot) {
   const roots = [
+    path.join(projectRoot, 'skills', 'agileflow'),
     path.join(projectRoot, '.cursor', 'skills', 'agileflow'),
     path.join(projectRoot, '.claude', 'skills', 'agileflow'),
     path.join(projectRoot, '.agents', 'skills', 'agileflow'),
@@ -136,13 +138,29 @@ function hasInstalledAgileflowSkill(projectRoot) {
  */
 function installTools(tools, opts) {
   const results = {};
+  const seenSkillsRoot = new Set();
   for (const tool of expandBuddyHosts(tools)) {
     if (!isKnownHost(tool)) {
       console.warn(`[agileflow] 未知 tool=${tool}，已忽略（可用: ${ALL_HOSTS.join(',')}）`);
       continue;
     }
     const install = INSTALLERS[tool];
-    if (install) results[tool] = install(opts);
+    if (!install) continue;
+    // 项目级所有宿主共用 skills/：只装一次；被去重的宿主仍需清理各自旧路径
+    if (opts.scope === 'project') {
+      const skillsRoot = path.join(path.resolve(opts.installRoot), 'skills');
+      if (seenSkillsRoot.has(skillsRoot)) {
+        const firstKey = Object.keys(results)[0];
+        const legacyRemoved = cleanupHostLegacy(path.resolve(opts.installRoot), tool, 'project');
+        if (firstKey) {
+          results[firstKey].legacyRemoved.push(...legacyRemoved);
+          results[tool] = results[firstKey];
+        }
+        continue;
+      }
+      seenSkillsRoot.add(skillsRoot);
+    }
+    results[tool] = install(opts);
   }
   return results;
 }
@@ -164,6 +182,29 @@ function pruneAll(installRoot, scope, catalog, tools) {
 }
 
 /**
+ * 删除 skills 根下历史 agileflow.bak-*（旧版 --force 重装遗留，会污染宿主 skill 菜单）
+ * @param {string} skillsRoot
+ * @returns {string[]}
+ */
+function removeStaleSkillBackups(skillsRoot) {
+  const root = path.resolve(skillsRoot);
+  if (!fs.existsSync(root)) return [];
+  const removed = [];
+  for (const name of fs.readdirSync(root)) {
+    if (!name.startsWith('agileflow.bak-')) continue;
+    const full = path.join(root, name);
+    try {
+      if (!fs.statSync(full).isDirectory()) continue;
+      fs.rmSync(full, { recursive: true, force: true });
+      removed.push(full);
+    } catch {
+      /* ignore */
+    }
+  }
+  return removed;
+}
+
+/**
  * @param {string[]} argvRest
  */
 export async function runInit(argvRest) {
@@ -171,7 +212,6 @@ export async function runInit(argvRest) {
   const ctx = resolveInitContext(flags, ALL_HOSTS);
   const installRoot = path.resolve(ctx.scope === 'user' ? os.homedir() : ctx.installRoot);
   const tools = ctx.tools;
-  const force = Boolean(flags.force);
   const meta = readPackageMeta();
 
   if (ctx.scope === 'project' && !fs.existsSync(installRoot)) {
@@ -187,17 +227,22 @@ export async function runInit(argvRest) {
     process.exit(1);
   }
 
+  // 默认先删旧再写入（不留 .bak）；门牌强制覆盖（--force 可省略，语义相同）
   const installOpts = {
     installRoot,
     scope: ctx.scope,
     catalog,
-    force,
-    backup: true,
+    force: true,
+    backup: false,
     stepSkillsOnly: false,
     skillSyncOnly: false,
   };
   const results = installTools(tools, installOpts);
   const removed = pruneAll(installRoot, ctx.scope, catalog, tools);
+
+  for (const r of Object.values(results)) {
+    if (r?.skillsRoot) removeStaleSkillBackups(r.skillsRoot);
+  }
 
   if (ctx.scope === 'project') {
     writeCliJson(installRoot, {
@@ -214,15 +259,25 @@ export async function runInit(argvRest) {
   }
 
   console.log(`\n✅ AgileFlow init (@agileflow/cli v${meta.version})`);
-  console.log(`   模式: ${ctx.scope === 'user' ? '用户级（~ 下各宿主 skills）' : '项目级'}`);
+  console.log(`   模式: ${ctx.scope === 'user' ? '用户级（~ 下各宿主 skills）' : '项目级（{项目}/skills/）'}`);
   console.log(`   目标: ${installRoot}`);
   console.log(`   tools: ${tools.join(', ')}`);
+  console.log('   重装: 已删除旧 agileflow skill 树后写入新版（门牌强制覆盖）');
   console.log(`   doorplate skills: ${catalog.map((e) => e.id).join(' ')}`);
-  for (const [tool, r] of Object.entries(results)) {
-    console.log(`   ${tool}: agileflow → ${r.skillDir}`);
-    console.log(`   ${tool}: ${r.written.length} doorplate skills → ${r.skillsRoot}/af-*/SKILL.md`);
-    if (r.skipped.length) console.log(`   ${tool}: skipped (not generated): ${r.skipped.length}`);
-    if (r.legacyRemoved?.length) console.log(`   ${tool}: removed ${r.legacyRemoved.length} legacy file(s)`);
+  if (ctx.scope === 'project') {
+    const r = Object.values(results).find(Boolean);
+    if (r) {
+      console.log(`   skills/: agileflow → ${r.skillDir}`);
+      console.log(`   skills/: ${r.written.length} doorplate → ${r.skillsRoot}/af-*/SKILL.md`);
+      if (r.legacyRemoved?.length) console.log(`   removed ${r.legacyRemoved.length} legacy file(s)`);
+    }
+  } else {
+    for (const [tool, r] of Object.entries(results)) {
+      console.log(`   ${tool}: agileflow → ${r.skillDir}`);
+      console.log(`   ${tool}: ${r.written.length} doorplate → ${r.skillsRoot}/af-*/SKILL.md`);
+      if (r.skipped.length) console.log(`   ${tool}: skipped (not generated): ${r.skipped.length}`);
+      if (r.legacyRemoved?.length) console.log(`   ${tool}: removed ${r.legacyRemoved.length} legacy file(s)`);
+    }
   }
   if (removed.length) console.log(`   pruned doorplates: ${removed.length}`);
   console.log('\n下一步：');
@@ -232,7 +287,7 @@ export async function runInit(argvRest) {
     console.log('  3. 闸门：agileflow gate --gate req-confirm --root .');
     console.log('  4. 改 flow 后：agileflow update --step-skills-only --root .\n');
   } else {
-    console.log('  3. 在具体项目里：agileflow init --root . --tools cursor（或其它宿主）');
+    console.log('  3. 在具体项目里：agileflow init --root .（统一装到 {项目}/skills/）');
     console.log('  4. 闸门：agileflow gate --bootstrap-scaffold --root YOUR_PROJECT\n');
   }
 }
@@ -266,7 +321,6 @@ export async function runUpdate(argvRest) {
     process.exit(1);
   }
 
-  const force = true;
   const meta = readPackageMeta();
   let catalog;
   try {
@@ -277,15 +331,20 @@ export async function runUpdate(argvRest) {
   }
 
   const scope = /** @type {const} */ ('project');
+  // 与 init 同口径：先删旧再写入，不留 .bak
   const results = installTools(tools, {
     installRoot: projectRoot,
     scope,
     catalog,
-    force,
-    backup: !modes.stepSkillsOnly,
+    force: true,
+    backup: false,
     stepSkillsOnly: modes.stepSkillsOnly,
     skillSyncOnly: modes.skillSyncOnly,
   });
+
+  for (const r of Object.values(results)) {
+    if (r?.skillsRoot) removeStaleSkillBackups(r.skillsRoot);
+  }
 
   const removed = pruneAll(projectRoot, scope, catalog, tools);
   writeCliJson(projectRoot, {
