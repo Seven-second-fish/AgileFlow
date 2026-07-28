@@ -24,6 +24,10 @@ import {
   printGateResultTrailer,
 } from '../scripts/validate-atlas/lib/gate-receipts.mjs';
 
+/**
+ * 输出用户第一眼即可执行的 CLI 帮助。
+ * 除命令索引外，直接展示“项目 Role 路径 → Flow step → 门牌”的最小扩展示例。
+ */
 function printHelp() {
   const { name, version } = readPackageMeta();
   console.log(`
@@ -39,6 +43,7 @@ ${name} v${version}  (bin: agileflow)
   agileflow log --door /af-req --summary … --route req [--root .]
     追加 atlas/logs/af-commands.md（/af* 强制留痕；闸门硬验）
   agileflow step sync [--root .]
+  agileflow context [--json] [--root .]   只读输出路由所需项目状态
   agileflow run start --change <id> [--step af-req] [--profile standard] [--root .]
   agileflow run status [--json] [--root .]
   agileflow run gate-status --gate req-confirm [--json] [--root .]
@@ -55,6 +60,23 @@ ${name} v${version}  (bin: agileflow)
   agileflow gate --gate write-code --root .
   agileflow log /af-req 做一个登录 --route req --root .
   agileflow update --step-skills-only --root .
+
+自定义阶段（id 就是门牌，prompt 直接写项目 Role 路径）:
+  1. 新建 atlas/role/role-security-review.md
+  2. 在 atlas/flow.yaml 的 steps 中插入:
+       - id: af-security-review
+         mode: strict
+         prompt: atlas/role/role-security-review.md
+         depends:
+           - atlas/solution/architecture.md
+         outputs:
+           - atlas/security/review.md
+  3. 生成门牌:
+       agileflow update --step-skills-only --root .
+  4. 使用:
+       /af-security-review
+
+  prompt: null 表示该步由总控直接执行；新配置只写明确的项目文件路径。
 `.trim());
 }
 
@@ -220,6 +242,11 @@ async function main() {
   if (cmd === 'log') {
     const { runAfLog } = await import('../cli/af-log.mjs');
     await runAfLog(argv.slice(1));
+    return;
+  }
+  if (cmd === 'context') {
+    const { runContextCommand } = await import('../cli/runtime-command.mjs');
+    await runContextCommand(argv.slice(1));
     return;
   }
   if (cmd === 'run') {

@@ -41,7 +41,10 @@ const text = fs.readFileSync(templateFlow, 'utf8');
 const flow = parseFlowYaml(text);
 check('parse version', flow.version === 1);
 check('parse 5 steps', Array.isArray(flow.steps) && flow.steps.length === 5);
-check('req prompt', flow.steps[0].id === 'af-req' && flow.steps[0].prompt === 'req');
+check(
+  'req prompt uses explicit project role path',
+  flow.steps[0].id === 'af-req' && flow.steps[0].prompt === 'atlas/role/role-req.md',
+);
 check('model orch', flow.steps[1].mode === 'orch' && flow.steps[1].criteria.length >= 4);
 check('test prompt null', flow.steps[4].id === 'af-test' && flow.steps[4].prompt === null);
 check('sol has depends', flow.steps[2].depends.includes('atlas/model/'));
@@ -122,6 +125,34 @@ fs.writeFileSync(path.join(atlas, 'flow.yaml'), insertOk);
 const insertReporter = new Reporter();
 validateFlowFile(tmp, insertReporter, { requireFile: true });
 check('insert step shape ok', insertReporter.errorCount() === 0);
+
+// 自定义步应直接引用项目内 Role 文件；缺文件必须在开始派活前报错。
+fs.writeFileSync(path.join(atlas, 'role', 'role-research.md'), '# research role\n');
+const rolePathFlow = `
+version: 1
+steps:
+  - id: af-research
+    mode: strict
+    prompt: atlas/role/role-research.md
+    depends: []
+    outputs:
+      - atlas/logs/research-demo.md
+`;
+fs.writeFileSync(path.join(atlas, 'flow.yaml'), rolePathFlow);
+const rolePathReporter = new Reporter();
+validateFlowFile(tmp, rolePathReporter, { requireFile: true });
+check('explicit project role path shape ok', rolePathReporter.errorCount() === 0);
+
+fs.writeFileSync(
+  path.join(atlas, 'flow.yaml'),
+  rolePathFlow.replace('role-research.md', 'role-missing.md'),
+);
+const missingRoleReporter = new Reporter();
+validateFlowFile(tmp, missingRoleReporter, { requireFile: true });
+check(
+  'missing prompt path fails before dispatch',
+  missingRoleReporter.getIssues().some((i) => i.rule === 'FLOW-ROLE'),
+);
 
 const insertBad = `
 version: 1

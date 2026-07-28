@@ -38,8 +38,8 @@ Subagent 回报后、跑 gate 前追加：
 
 ```
 1. 确认 atlas/role/（缺 → --bootstrap-scaffold；DIR-ROLE）
-2. key ∈ {req, model, sol, dev}
-3. body = resolveRolePrompt(root, key, ctx)
+2. 读当前 flow step 的 prompt（例如 atlas/role/role-req.md）
+3. body = resolveRolePrompt(root, promptPath, ctx)
 4. prompt = body + buildTaskEnvelope({ 路径-only, gate, Tid… })
 5. 【宿主 Subagent/Task】发出
 ```

@@ -187,7 +187,7 @@ screenshotsReviewed: true
 | **无截图 = 未跑完** | 每非 skip 页截图文件须在盘上 |
 | **无目视 = 未验收** | 须 `fe-smoke-visual-review.md` 且每页 PASS |
 | **H5 ≠ weapp** | 不得用 H5 PASS 声称「小程序控制台无错」 |
-| **禁止用户跳过豁免** | 与「这个才算过」一致；不能起 H5 → FAIL + humanTodo，不标 PASS |
+| **禁止用户跳过** | 与「这个才算过」一致；不能起 H5 → FAIL + humanTodo，不标 PASS |
 
 ---
 

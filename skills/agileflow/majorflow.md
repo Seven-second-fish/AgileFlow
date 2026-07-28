@@ -28,7 +28,7 @@ AgileFlow 要解决的不是「让 AI 多写点代码」，而是：
 | **快捷轨** | `/af-fix` / `/af-refactor` / `/af-tweak` / `/af-perf` / `/af-chore` / `/af-ut` / `/af-revise` | 小改；零文档或修订**已有**；无确认卡、无主链闸门、不派角色。越界 → 升级完整轨。细则 → `skills/agileflow/phases/quick-commands.md` |
 | **完整轨** | 正式交付意图（无上述前缀，或升级后） | 按 `atlas/flow.yaml` 走**未 skip** 的步；默认骨架即下方主链。**新增/重做阶段**（含插入步）= 改 flow 并从该步**重新走**，不是 revise |
 
-未启用 AF 时的微型/hotfix/问答 **豁免** 仍存在；**已启用 AF 后**轻量改动走快捷轨，不靠装豁免。
+纯问答不进入 AgileFlow；需要改动但符合轻量边界时，统一走快捷轨，不再区分项目是否已启用 AF。
 
 ---
 
@@ -44,7 +44,6 @@ AgileFlow 要解决的不是「让 AI 多写点代码」，而是：
 | **pre-flow** | `/af-init` | **否** | brownfield 盘点；`init-confirm` 后进第一个 flow 步；**永不**写入 flow steps |
 | **routing** | `/af`（默认）、`/af-explore` | **否** | `/af` = 万能自动路由；`af-explore` = 窄探索支路；不写 env/REQ/flow（落地到真实步后另说） |
 | **quick** | `/af-fix` … `/af-revise` | **否** | 快捷轨；越界 → 升级 flow 轨 |
-| **豁免** | （无门牌） | **否** | 仅未启用 AF 的问答/微型/hotfix |
 
 脚本 [`FLOW_RESERVED_IDS`](scripts/validate-atlas/lib/flow.mjs) 禁止 init/explore/**af**/快捷 id 进入 flow.yaml。
 
@@ -120,7 +119,7 @@ brownfield 另有前置 `/af-init`（盘点已有代码与业务）：**进场�
 **解决什么**：业务实体、关系、规则、必要时的持久化形状。
 
 - **看项目，不看仪式**。复杂实体/状态机 → 加重；简单 CRUD、无新实体 → **可几乎无视**。
-- 「几乎无视」≠ 静默跳过：该步须为 **`mode: orch`** 且对照 **`criteria`**；总控写 `skip` + `reason` 后再决定派不派 `prompt: role-model`。
+- 「几乎无视」≠ 静默跳过：该步须为 **`mode: orch`** 且对照 **`criteria`**；总控写 `skip` + `reason` 后再决定是否按 `prompt: atlas/role/role-model.md` 派活。
 - 只回答业务世界是什么，**不**定义 API、不拆开发任务。
 
 **结束时应有**：可用 model，或 flow 上白纸黑字的总控跳过判定。
@@ -187,7 +186,7 @@ brownfield 另有前置 `/af-init`（盘点已有代码与业务）：**进场�
 | 阶段结束少停（A 档绿 → 一行摘要） | todo ①②③、构思文件、可运行证据、REQ AC 回填（当对应步启用时） |
 | 等人说「继续」才开下一批 | 启用步闸门 exit 0；阻塞派活同会话循环到交付 |
 
-**易混**：「你定」≠ 已答启动卡；≠ 擅自关 req/test；≠ 豁免捷径 / 先码后补。关核心步须用户明示；model 按需跳过须总控写进 flow。AI 自主少问时，形柱与跑柱必须更硬，否则必偷懒。
+**易混**：「你定」≠ 已答启动卡；≠ 擅自关 req/test；≠ 让完整任务冒充快捷任务 / 先码后补。关核心步须用户明示；model 按需跳过须总控写进 flow。AI 自主少问时，形柱与跑柱必须更硬，否则必偷懒。
 
 ---
 
@@ -212,8 +211,7 @@ AI 容易幻觉、不听指挥、空跑冒充完成，于是加了三层加固�
 | **流程编排（flow.yaml）** | 完整轨启用哪些步；总控改、角色不改；质量跟启用 |
 | **决策维（ai/user）** | 只控停点与是否推并发；不减 sol/dev 质量；不替用户关核心步；不取消①或可运行闸门 |
 | **质量线** | dev 唯一完整档：叙述五段式 + 逻辑块怎么做编号；`AF_TIER=full` 不减厚度 |
-| **快捷轨** | 已启用 AF 亦可用的轻量通道（非豁免） |
-| **豁免** | 仅未启用 AF 的问答/微型/hotfix；灰区 AskQuestion |
+| **快捷轨** | 适用于所有项目的轻量改动通道；越界即升级完整轨 |
 | **CLI / 门牌 skill** | `npx @agileflow/cli@latest init` 装 `skills/agileflow` + `skills/af-*`；改 flow 后 `update --step-skills-only`；闸门 `agileflow gate` |
 | **薄总控 / 厚角色** | `SKILL.md` 只路由+裁决+≤15 红线；写法在 role layers / phases |
 | **正确做法与红线** | 正向节奏优先；踩线列 ≤15 条（orchestrator SSOT），不堆禁令 |
@@ -227,7 +225,7 @@ AI 容易幻觉、不听指挥、空跑冒充完成，于是加了三层加固�
 ## 非目标
 
 - 不是「纯防幻觉工具」——防失控服从拆解
-- 不做豁免场景的完整流水线（微型/hotfix/纯问答走豁免；小改走快捷轨）
+- 纯问答不进入流程；轻量改动走快捷轨，不强行展开完整流水线
 - 不把编排塞进 `todo.md`，不用 `uses`/多档 preset 配置面糊弄用户
 - 脚本不替用户编译运行——只验落盘之形与勾选是否对得上证据
 - 默认串行；`ai` 可推并发，但「全部开发」≠ 自动启 Subagent

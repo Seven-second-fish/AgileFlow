@@ -2,7 +2,7 @@ version: 1
 steps:
   - id: af-req
     mode: strict
-    prompt: req
+    prompt: atlas/role/role-req.md
     depends:
       - atlas/agileflow.env
       - atlas/glossary.md
@@ -14,7 +14,7 @@ steps:
 
   - id: af-mod
     mode: orch
-    prompt: model
+    prompt: atlas/role/role-model.md
     criteria:
       - "无新业务实体、无状态机、无跨表不变式 → 可判定 skip"
       - "仅字段级微调且已有 model 覆盖 → 可判定 skip 或增量"
@@ -31,7 +31,7 @@ steps:
 
   - id: af-sol
     mode: strict
-    prompt: sol
+    prompt: atlas/role/role-sol.md
     depends:
       - atlas/requirements/REQ-*.md
       - atlas/model/
@@ -45,7 +45,7 @@ steps:
 
   - id: af-dev
     mode: strict
-    prompt: dev
+    prompt: atlas/role/role-dev.md
     depends:
       - atlas/todo.md
       - atlas/solution/features/F-*.md

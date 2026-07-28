@@ -81,4 +81,4 @@ atlas/
 
 **命名**：`{NNN}-{简述}.md`（dev 含端：`{NNN}-{简述}-{FE|BE|FULL}.md`）；NNN 三位递增。**不用**在正式目录用 `TEMP-` 前缀命名（统一用 `temp/` 子目录）。
 
-命中 [00-intent §豁免判定](00-intent-routing.md#①-豁免判定最先做) → **不用** `dev/temp/`、**不用**微型豁免。灰色地带须 AskQuestion；`temp/` 不计入 T 头等式。
+快捷轨不生成 `dev/temp/`；`temp/` 不计入正式 T 头等式。

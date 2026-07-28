@@ -6,6 +6,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { collectFiles, exists, readText } from './fs-utils.mjs';
+import { hasConfirmedRequirement } from './brownfield.mjs';
 
 export const FLOW_REL = 'atlas/flow.yaml';
 
@@ -591,26 +592,6 @@ export function inferWaveFromFlow(projectRoot, flow, opts = {}) {
 }
 
 /**
- * 是否已有「已确认|已实现」的 REQ（主链已实质启动）
- * @param {string} projectRoot
- */
-function hasConfirmedRequirement(projectRoot) {
-  const reqRoot = path.join(projectRoot, 'atlas', 'requirements');
-  if (!exists(reqRoot)) return false;
-  let files = [];
-  try {
-    files = fs.readdirSync(reqRoot).filter((n) => /^REQ-\d+/i.test(n) && n.endsWith('.md'));
-  } catch {
-    return false;
-  }
-  for (const n of files) {
-    const text = readText(path.join(reqRoot, n)) || '';
-    if (/状态[：:]\s*(已确认|已实现)/.test(text)) return true;
-  }
-  return false;
-}
-
-/**
  * 从 flow + 产物推断当前应在的 step id（波的最左；兼容旧调用）
  * @param {string} projectRoot
  * @param {object} flow
@@ -629,6 +610,30 @@ export function inferStepFromFlow(projectRoot, flow, opts = {}) {
 export function isFlowStepSkipped(flow, id) {
   const step = getFlowStep(flow, id);
   return Boolean(step && step.skip === true);
+}
+
+/**
+ * 校验 prompt 是否是安全的项目内 Markdown 路径。
+ * 目的：Flow 可以直接引用 atlas/role/*.md 或项目内 Skill 的 SKILL.md，
+ * 但不能用绝对路径或 ../ 越出项目。
+ * @param {string} projectRoot
+ * @param {string} prompt
+ * @returns {{ ok: boolean, rel?: string, abs?: string, reason?: string }}
+ */
+export function resolveFlowPromptPath(projectRoot, prompt) {
+  const raw = String(prompt || '').trim();
+  if (!raw || path.isAbsolute(raw)) {
+    return { ok: false, reason: '须为项目内相对 Markdown 路径' };
+  }
+  if (!/\.md$/i.test(raw)) {
+    return { ok: false, reason: '须指向 .md 文件' };
+  }
+  const root = path.resolve(projectRoot);
+  const abs = path.resolve(root, raw);
+  if (abs !== root && !abs.startsWith(`${root}${path.sep}`)) {
+    return { ok: false, reason: '不得用 ../ 离开项目目录' };
+  }
+  return { ok: true, rel: raw.replace(/\\/g, '/'), abs };
 }
 
 /**
@@ -742,19 +747,21 @@ export function validateFlowFile(projectRoot, reporter, opts = {}) {
       });
     }
 
-    const promptOk =
-      prompt === null ||
-      ROLE_KEYS.has(prompt) ||
-      (typeof prompt === 'string' && prompt.length > 0);
+    const promptPath =
+      typeof prompt === 'string' && !ROLE_KEYS.has(prompt)
+        ? resolveFlowPromptPath(projectRoot, prompt)
+        : null;
+    const promptOk = prompt === null || ROLE_KEYS.has(prompt) || promptPath?.ok === true;
     if (!promptOk) {
       reporter.add({
         severity: 'error',
         rule: 'FLOW-PROMPT',
         file: FLOW_REL,
-        message: `${id}.prompt 须为 req|model|sol|dev|null 或角色文件路径`,
+        message: `${id}.prompt 须为 null 或项目内 Markdown 路径（推荐 atlas/role/role-*.md）${promptPath?.reason ? `：${promptPath.reason}` : ''}`,
       });
     }
 
+    // 旧短名仍可读，避免已有项目升级即坏；新模板与文档不再生成短名。
     if (ROLE_KEYS.has(prompt)) {
       const rolePath = path.join(projectRoot, 'atlas', 'role', `role-${prompt}.md`);
       if (!exists(rolePath)) {
@@ -763,6 +770,16 @@ export function validateFlowFile(projectRoot, reporter, opts = {}) {
           rule: 'FLOW-ROLE',
           file: `atlas/role/role-${prompt}.md`,
           message: `${id}.prompt=${prompt} 但缺少 atlas/role/role-${prompt}.md（先 --bootstrap-scaffold）`,
+        });
+      }
+    } else if (promptPath?.ok) {
+      const promptFileExists = exists(promptPath.abs);
+      if (!promptFileExists || !fs.statSync(promptPath.abs).isFile()) {
+        reporter.add({
+          severity: 'error',
+          rule: 'FLOW-ROLE',
+          file: promptPath.rel,
+          message: `${id}.prompt 指向的项目文件不存在或不是文件：${promptPath.rel}`,
         });
       }
     }
@@ -902,7 +919,7 @@ export function ensureFlowYaml(projectRoot, skillRoot) {
   } else {
     fs.writeFileSync(
       dest,
-      'version: 1\nsteps:\n  - id: af-req\n    mode: strict\n    prompt: req\n    depends: []\n    outputs:\n      - atlas/requirements/\n',
+      'version: 1\nsteps:\n  - id: af-req\n    mode: strict\n    prompt: atlas/role/role-req.md\n    depends: []\n    outputs:\n      - atlas/requirements/\n',
     );
   }
   return { created: true, path: dest };

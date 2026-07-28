@@ -5,4 +5,4 @@
 - 改码 → 编译 + 相关测试；收尾首行 `✅`
 - **强制留痕**：`npx @agileflow/cli log --door /af-fix --summary … --route fix --root .`（写入 `af-commands.md`）
 - 越界 → 首行升级声明 → 完整 flow 轨或 `/af-revise`
-- 已启用 AF 仍可用快捷轨（非豁免）
+- 快捷轨独立于完整 Flow；所有项目都可使用

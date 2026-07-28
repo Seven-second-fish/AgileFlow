@@ -28,7 +28,7 @@ WHEN enable: phases/00-intent-routing.md#agent-摘要 | phases/atlas-structure.m
 WHEN decide: templates/contract.md
 WHEN routing af: phases/00-intent-routing.md#agent-摘要
 WHEN pre-flow af-init: phases/00-project-init.md#agent-摘要 | templates/init.md
-WHEN routing af-explore: phases/00-intent-routing.md#探索判定
+WHEN routing af-explore: cli/snippets/l0-routing.md
 WHEN flow-step af-req: phases/01-requirement.md#agent-摘要 | templates/req.md
 WHEN flow-step af-mod: phases/02-modeling.md#agent-摘要 | templates/model.md
 WHEN flow-step af-sol: phases/03-solution-design.md#agent-摘要 | templates/solution.md

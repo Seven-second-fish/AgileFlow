@@ -144,10 +144,10 @@ npx @agileflow/cli gate --bootstrap-scaffold --root .
 |--------|--------|------|
 | 改角色提示词 | 编辑 `atlas/role/role-*.md` | 下次派活用全文；该阶段**文档格式**闸门跳过；ORCH/`write-code` 等仍硬挡 |
 | 加流程步 | 在 `atlas/flow.yaml` 插入 `id: af-xxx`（**必须** `af-` 前缀）+ `prompt` + depends/outputs | `npx @agileflow/cli@latest update --step-skills-only` → 生成各宿主 `skills/af-xxx/SKILL.md` |
-| `prompt` 写法 | 短名 `req`/`model`/`sol`/`dev`；`null` 总控直做；或路径 `atlas/role/role-xxx.md`（文件须已存在） | 路径 = 自定义角色提示词，不是门牌 id |
+| `prompt` 写法 | 直接写项目路径 `atlas/role/role-xxx.md`（也可为项目内 Skill 的 `SKILL.md`）；`null` 才是总控直做 | 路径 = 角色提示词来源，不是门牌 id；旧短名仅兼容，不再用于新配置 |
 | 刷新门牌 | `update --step-skills-only` | 按当前 flow 增删各宿主 `skills/af-*/SKILL.md`；改 flow 后还须 abandon/start Run |
 
-主链默认 id：`af-req` → `af-mod` → `af-sol` → `af-dev` → `af-test`。`prompt: req` 仍指向 `role-req`（内部角色短名，不是门牌）。
+主链默认 id：`af-req` → `af-mod` → `af-sol` → `af-dev` → `af-test`。例如 `af-req` 明写 `prompt: atlas/role/role-req.md`。
 
 ---
 

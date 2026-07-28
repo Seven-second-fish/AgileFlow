@@ -2,7 +2,7 @@
 
 > **AC / 验收全流程**：本文（阶段 5 权威）· 合并验证 → [测试入场门禁](#测试入场门禁与阶段-4③-合并验证) · ③ 证据定义 → [③ 证据可解析](#③-证据可解析硬定义)
 > humanTodo：[human-todo.md](../templates/human-todo.md) · 报告模板：[test-report.md](../templates/test-report.md)
-> **分层入口**：`/af-test` / `/af-tests` + 层名 → [00-intent §test 分层](00-intent-routing.md#af-test-分层可指定层--单端)
+> **分层入口**：`/af-test` / `/af-tests` + 层名；本文件是分层定义的唯一来源。
 > **Template ON**（`AF_TEMPLATE=yes`）时先读 `atlas/template/tests/` 下对应 `template-*.md`（无则回退 skill templates/）
 
 <a id="agent-摘要"></a>
@@ -191,7 +191,7 @@ humanTodo 未清 → **不标** PASS。
 **有 FE 但 Playwright 三件套未齐** → **不标** PASS。
 **技术债未清零** → **不标** PASS（[debt.md](../templates/debt.md) 中待回溯/事后补写/质疑待处理/**环境待复现（未偿还且未用户接受）**须清零或用户确认接受）。
 
-> 环境不可复现降级（仅编译+单测）**默认不豁免** FE Playwright 门槛；不能起 H5/浏览器 → 记 humanTodo，不标 PASS。
+> 环境不可复现降级（仅编译+单测）**不能绕过** FE Playwright 门槛；不能起 H5/浏览器 → 记 humanTodo，不标 PASS。
 ## 测试失败回退（5→4）
 
 > AC 语义变了 → [change-management L2](change-management.md)；单 T bug → L0/L1。

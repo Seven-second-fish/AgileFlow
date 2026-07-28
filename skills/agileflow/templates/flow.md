@@ -3,7 +3,7 @@
 > **运行时**：`{项目根}/atlas/flow.yaml`
 > **本文**：约定；默认正文见下方模板（**路径写在模板每一步里**）。
 > 目录铁律 → [`atlas-structure.md`](../phases/atlas-structure.md)
-> 派活 → `resolveRolePrompt(projectRoot, prompt)`（`prompt` = RoleKey）
+> 派活 → `resolveRolePrompt(projectRoot, prompt)`（`prompt` = 项目内 Role/Skill Markdown 路径）
 > 光标 → `atlas/agileflow.env` 的 **`AF_STEP`**（单步 id，或并行波 `id1,id2`；`AF_PHASE`=最左档）
 
 ---
@@ -43,7 +43,7 @@ version: 1
 steps:
   - id: af-req
     mode: strict
-    prompt: req
+    prompt: atlas/role/role-req.md
     # 上游依赖（派活前总控保证可读；无则按阶段文档处理）
     depends:
       - atlas/agileflow.env
@@ -57,7 +57,7 @@ steps:
 
   - id: af-mod
     mode: orch
-    prompt: model
+    prompt: atlas/role/role-model.md
     criteria:
       - "无新业务实体、无状态机、无跨表不变式 → 可判定 skip"
       - "仅字段级微调且已有 model 覆盖 → 可判定 skip 或增量"
@@ -74,7 +74,7 @@ steps:
 
   - id: af-sol
     mode: strict
-    prompt: sol
+    prompt: atlas/role/role-sol.md
     depends:
       - atlas/requirements/REQ-*.md
       - atlas/model/                          # 若上步未 skip
@@ -88,7 +88,7 @@ steps:
 
   - id: af-dev
     mode: strict
-    prompt: dev
+    prompt: atlas/role/role-dev.md
     depends:
       - atlas/todo.md
       - atlas/solution/features/F-*.md
@@ -115,24 +115,28 @@ steps:
       - atlas/logs/fe-smoke-visual-review.md
 ```
 
-**插入步**（夹在中间时）——路径也写在该步上：
+**插入自定义角色步**（夹在中间时）——先写项目 Role，再把路径放进该步：
 
 ```yaml
   - id: af-research
     mode: strict
-    prompt: null
-    depends: []
+    prompt: atlas/role/role-research.md
+    depends:
+      - atlas/requirements/README.md
     outputs:
       - atlas/logs/research-login.md
     reason: "夹在 req 前：先调研"
 ```
+
+保存后执行 `agileflow update --step-skills-only --root .`，即可用门牌 `/af-research`。
+若希望总控直接执行而不派角色，才写 `prompt: null`。
 
 **总控 skip model 时**在该 step 上追加（不要另造 `by`）：
 
 ```yaml
   - id: af-mod
     mode: orch
-    prompt: model
+    prompt: atlas/role/role-model.md
     criteria: [ …同上… ]
     depends: [ … ]
     outputs: [ … ]
@@ -155,14 +159,14 @@ steps:
 总控到某步时：
 
 1. 读该步 `mode` / `criteria`（orch 先判定；strict 直接做）。
-2. **`prompt`** → `resolveRolePrompt` 得到角色提示词正文（或 `null` 总控自己读 `phases/*.md`）。
+2. **`prompt`** → 按项目相对路径加载 Role/Skill Markdown；默认 `role-req/model/sol/dev.md` 未改时按 layers 渐进组装，改过或自定义文件则读取全文；`null` 才由总控自己读 `phases/*.md`。
 3. **`depends`** → 填进任务信封的 **上游路径**（`upstreamPaths`）：**只列路径，不粘贴正文**。
 4. **`outputs`** → 填进信封的 **产物期望**（`expectedOutputs`）。
 5. 完整 Subagent 输入 = **角色提示词 + 薄信封**（现网 `formatDispatchPrompt`）。
 
 Subagent 侧：
 
-- 先按提示词（`atlas/role/role-*.md` 或 layers 拼装）行事；
+- 先按 `prompt` 指定的项目 Role/Skill 文件（或该文件指向的 layers 组装结果）行事；
 - 再用 Read **自己去读** `depends` 里的文件；
 - **只写** `outputs` 约定路径（写错目录闸门红）。
 
@@ -239,7 +243,7 @@ Subagent 侧：
 | `steps` | 有序步骤 |
 | `id` | 步名；**canonical `af-*`**（如 `af-req`/`af-mod`/`af-test`）。加载时短名 `req`/`model`/`sol`… 规范化为 `af-*`（见 [§内置 id](#内置-id--闸门--phase不写进-yaml)）；自定义插入须 `af-` 前缀 |
 | `mode` | `strict`=到步必做，总控不可 skip；`orch`=须有 `criteria`，总控可判定 skip |
-| `prompt` | 短名 `req`/`model`/`sol`/`dev`（加载时不变 step id，仅映射 role key）→ `resolveRolePrompt`；`null` → 总控读对应 `phases/*.md`；插入也可 `null` 或已有 `atlas/role/某.md` 路径 |
+| `prompt` | **项目内 Markdown 路径**，推荐 `atlas/role/role-*.md`；也可指向项目内 Skill 的 `SKILL.md`；`null` → 总控读对应 `phases/*.md`。旧短名仅兼容历史 flow，新配置不要再写 |
 | `criteria` | **仅 `orch`**：判定标准（事先） |
 | `depends` | **依赖路径**（派活/开干前应具备的上游） |
 | `outputs` | **产物路径**（本步允许/应写的落盘位置；glob 用 `*`） |
@@ -257,11 +261,12 @@ Subagent 侧：
 
 | `prompt` | 读哪里 |
 |----------|--------|
-| `req`/`model`/`sol`/`dev` | custom：`atlas/role/role-{key}.md`；默认：`skills/agileflow/templates/role/layers/{key}/`（`resolveRolePrompt`） |
+| `atlas/role/role-req.md` 等内置 Role 路径 | 文件相对 baseline 已改 → 项目文件全文；未改 → `skills/agileflow/templates/role/layers/{key}/` 渐进组装 |
+| 其他项目 Role/Skill Markdown 路径 | 读取该文件全文，例如 `atlas/role/role-research.md` 或 `skills/security-review/SKILL.md` |
 | `null` | 总控：`phases/01-requirement.md` 等（按 `id`）；test→`05-testing.md`；init→`00-project-init.md` |
-| 插入自定义文件 | 路径须已存在，如 `atlas/role/role-research.md` |
 
 角色 stamp 来源：`--bootstrap-scaffold` 把 `templates/role/role-*.md` → `atlas/role/`。
+兼容：旧项目中的 `req`/`model`/`sol`/`dev` 短名仍可解析，但新模板、帮助和示例只生成明确路径。
 
 ---
 

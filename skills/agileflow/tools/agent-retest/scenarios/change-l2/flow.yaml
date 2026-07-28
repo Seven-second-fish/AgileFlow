@@ -2,14 +2,14 @@ version: 1
 steps:
   - id: af-req
     mode: strict
-    prompt: req
+    prompt: atlas/role/role-req.md
     depends: []
     outputs:
       - atlas/requirements/REQ-*.md
 
   - id: af-mod
     mode: orch
-    prompt: model
+    prompt: atlas/role/role-model.md
     criteria:
       - "无新业务实体 → 可 skip"
     depends:
@@ -19,7 +19,7 @@ steps:
 
   - id: af-sol
     mode: strict
-    prompt: sol
+    prompt: atlas/role/role-sol.md
     depends:
       - atlas/requirements/REQ-*.md
       - atlas/model/
@@ -29,7 +29,7 @@ steps:
 
   - id: af-dev
     mode: strict
-    prompt: dev
+    prompt: atlas/role/role-dev.md
     depends:
       - atlas/todo.md
     outputs:

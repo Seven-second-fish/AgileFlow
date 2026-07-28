@@ -1,8 +1,8 @@
 # 快捷指令（轻量模式）
 
 > **唯一 SSOT**：fix/refactor/tweak/perf/chore/ut/revise 指令的定义、边界、流程。
-> 路由入口 → [00-intent-routing §快捷指令](00-intent-routing.md#quick-commands-routing)
-> 与完整流程的关系：快捷指令是完整流程的**显式豁免通道**，已启用 AF 时同样有效。
+> 路由入口 → [00-intent-routing](00-intent-routing.md#agent-摘要)
+> 与完整流程的关系：快捷指令是独立的轻量改动通道，所有项目都可使用；越界时升级完整轨。
 
 <a id="agent-摘要"></a>
 

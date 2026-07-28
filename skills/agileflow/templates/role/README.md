@@ -10,9 +10,10 @@
 
 ```
 1. 首启已落盘 atlas/role/（缺 → --bootstrap-scaffold 或闸门 DIR-ROLE）
-2. resolveRolePrompt(projectRoot, key)：
-   · custom（哈希 ≠ baseline）→ Read atlas/role/role-{key}.md **全文**
-   · 默认（assembled）→ skill templates/role/layers/{key}/ 拼装 core+return（按需 +quality/examples）
+2. 读当前 flow step 的 `prompt`，调用 resolveRolePrompt(projectRoot, promptPath)：
+   · 内置路径（如 atlas/role/role-req.md）且 custom（哈希 ≠ baseline）→ Read 项目文件**全文**
+   · 内置路径且默认（assembled）→ skill templates/role/layers/{key}/ 拼装 core+return（按需 +quality/examples）
+   · 其他项目 Role/Skill Markdown 路径 → Read 指定文件**全文**
 3. 追加薄「本次任务」块（只列路径 + gate，禁止贴上游正文）→ buildTaskEnvelope
 4. 【必须】调用宿主多 Agent API 发给 Subagent
 5. 收回报 → 总控写 atlas/agileflow-dispatch.json → validate-atlas --gate
@@ -20,12 +21,12 @@
 
 实现：`scripts/validate-atlas/lib/role-prompt.mjs`（`resolveRolePrompt` · `assembleSkillLayers` · `buildTaskEnvelope`）
 
-| key | 文件（stamp / custom 全文） | layers 目录 |
-|-----|---------------------------|-------------|
-| `req` | `role-req.md` | `layers/req/` |
-| `model` | `role-model.md` | `layers/model/` |
-| `sol` | `role-sol.md` | `layers/sol/` |
-| `dev` | `role-dev.md` | `layers/dev/` |
+| flow `prompt` | 文件（stamp / custom 全文） | layers 目录 |
+|---------------|---------------------------|-------------|
+| `atlas/role/role-req.md` | `role-req.md` | `layers/req/` |
+| `atlas/role/role-model.md` | `role-model.md` | `layers/model/` |
+| `atlas/role/role-sol.md` | `role-sol.md` | `layers/sol/` |
+| `atlas/role/role-dev.md` | `role-dev.md` | `layers/dev/` |
 
 阶段 0 init / 阶段 5 tests：无角色派活，**总控直接做**。
 

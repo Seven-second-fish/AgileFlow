@@ -334,7 +334,7 @@ export const AI_GATES = {
     docFirstScope: 'write-code',
     when: 'Write 业务源码前 · 文档先行硬锁（ai/user 无差别）',
     blocking: true,
-    extra: 'AF 项目+有源码 → REQ/sol/dev① 格式全过才绿；无微型/hotfix 豁免',
+    extra: '完整 Flow + 有源码 → REQ/sol/dev① 格式全过才绿；快捷轨按自身边界执行',
   },
   'req-trace': {
 
@@ -351,5 +351,4 @@ export const AI_GATES = {
   },
 
 };
-
 

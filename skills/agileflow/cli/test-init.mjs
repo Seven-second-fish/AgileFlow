@@ -54,9 +54,13 @@ assert(r.status === 0, 'help exit 0');
 assert((r.stdout || '').includes('@agileflow/cli'), 'help 含包名');
 assert((r.stdout || '').includes('--step-skills-only'), 'help 含 step-skills-only');
 assert((r.stdout || '').includes('run abandon'), 'help 含 run abandon');
+assert((r.stdout || '').includes('agileflow context'), 'help 含只读 context 命令');
 assert((r.stdout || '').includes('无 --root'), 'help 说明无 root 为 user init');
 assert((r.stdout || '').includes('{项目}/skills/') || (r.stdout || '').includes('skills/'), 'help 说明项目级 skills/');
 assert((r.stdout || '').includes('@agileflow/cli@latest'), 'help 示例带 @latest（绕过 npx 旧缓存）');
+assert((r.stdout || '').includes('atlas/role/role-security-review.md'), 'help 展示明确项目 Role 路径');
+assert((r.stdout || '').includes('id 就是门牌'), 'help 说明 flow id 即门牌');
+assert((r.stdout || '').includes('/af-security-review'), 'help 展示自定义门牌用法');
 
 // 用户级 init（隔离 HOME）
 const fakeHome = path.join(tmp, 'fakehome');
@@ -109,6 +113,12 @@ assert(
 assert(!fs.existsSync(path.join(tmp, '.claude', 'skills', 'agileflow', 'SKILL.md')), '项目级不写 .claude/skills');
 assert(!fs.existsSync(path.join(tmp, '.cursor', 'commands', 'af-req.md')), '无 legacy cursor command');
 assert(fs.existsSync(path.join(tmp, 'atlas', 'agileflow-cli.json')), 'cli.json');
+const installedFlowTemplate = fs.readFileSync(
+  path.join(tmp, 'skills', 'agileflow', 'templates', 'flow.yaml'),
+  'utf8',
+);
+assert(installedFlowTemplate.includes('prompt: atlas/role/role-req.md'), '安装包 flow 模板暴露明确 Role 路径');
+assert(!installedFlowTemplate.includes('prompt: req\n'), '安装包 flow 模板不生成 prompt 短名');
 
 const cliJson = JSON.parse(fs.readFileSync(path.join(tmp, 'atlas', 'agileflow-cli.json'), 'utf8'));
 assert(cliJson.delivery === 'skills', 'delivery=skills');
@@ -122,6 +132,7 @@ assert(reqBody.includes('agileflow'), '引用 agileflow skill');
 assert(!/手打 `req:/.test(reqBody) && !reqBody.includes('等同 req:'), '无旧 req: 门牌教法');
 assert(reqBody.includes('flow.yaml'), 'flow 门牌含 flow.yaml');
 assert(reqBody.includes('stepId=`af-req`') || reqBody.includes('stepId=af-req'), 'flow 门牌含 stepId');
+assert(reqBody.includes('当前 step 的 `prompt`'), 'flow 门牌要求读取当前 step.prompt');
 
 const fixBody = fs.readFileSync(path.join(tmp, 'skills', 'af-fix', 'SKILL.md'), 'utf8');
 assert(fixBody.includes('非 flow 步') || fixBody.includes('快捷'), 'quick 门牌声明非 flow');
@@ -135,9 +146,15 @@ assert(afBody.includes('非 flow') || afBody.includes('非 flow 步'), 'af 门�
 assert(afBody.includes('禁止') && afBody.includes('AF_STEP=af'), 'af 门牌禁止写 AF_STEP=af');
 assert(afBody.includes('skill 根'), 'af 门牌含 skill 根定位');
 assert(afBody.includes('agileflow skill 根'), 'af 门牌 Read 指向 skill 根');
+assert(afBody.includes('agileflow context --json'), 'af 门牌通过只读 context 获取路由上下文');
+assert(afBody.includes('自动路由 `af-revise`'), 'af 门牌把已有需求/方案修改自动路由到 af-revise');
 assert(!afBody.includes('Read 项目内 **agileflow** skill'), 'af 门牌不再写「项目内」误导路径');
 assert(cliJson.scopes?.af?.scope === 'routing', 'cli.json scopes af routing');
 assert(afBody.includes('同级') && afBody.includes('agileflow'), 'af 门牌说明同级 agileflow');
+
+const exploreBody = fs.readFileSync(path.join(tmp, 'skills', 'af-explore', 'SKILL.md'), 'utf8');
+assert(exploreBody.includes('最多两轮'), 'explore 门牌内含完整的探索收口规则');
+assert(!exploreBody.includes('只读这一份路由 SSOT'), 'explore 门牌不为一个小分支加载整份路由文档');
 
 const testsBody = fs.readFileSync(path.join(tmp, 'skills', 'af-tests', 'SKILL.md'), 'utf8');
 assert(testsBody.includes('af-test'), 'af-tests alias 指向 af-test');
@@ -212,6 +229,8 @@ steps:
 r = run(['update', '--step-skills-only', '--root', tmp], tmp);
 assert(r.status === 0, 'update --step-skills-only');
 assert(fs.existsSync(path.join(tmp, 'skills', 'af-research', 'SKILL.md')), 'af-research 生成');
+const researchBody = fs.readFileSync(path.join(tmp, 'skills', 'af-research', 'SKILL.md'), 'utf8');
+assert(researchBody.includes('mode/prompt/depends/outputs'), '自定义门牌读取完整 step 配置');
 
 // --commands-only 别名仍可用
 r = run(['update', '--commands-only', '--root', tmp], tmp);

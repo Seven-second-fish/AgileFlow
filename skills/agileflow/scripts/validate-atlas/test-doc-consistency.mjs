@@ -158,7 +158,6 @@ mustInclude('SKILL.md', 'bootstrap-scaffold');
 // —— 派活台账路径（项目 atlas/，非 .cursor/）——
 mustInclude('SKILL.md', 'atlas/agileflow-dispatch.json');
 mustInclude('templates/orchestrator-ref.md', 'atlas/agileflow-dispatch.json');
-mustInclude('phases/00-intent-routing.md', 'agileflow-dispatch.json');
 const dispatchDocFiles = [
   'SKILL.md',
   'templates/orchestrator.md',
@@ -200,7 +199,6 @@ mustNotInclude('SKILL.md', 'subagent-contracts.md');
 mustNotInclude('phases/01-requirement.md', 'stage-delegation.md');
 mustNotInclude('phases/04-development.md', 'parallel-orchestration.md');
 
-mustInclude('phases/00-intent-routing.md', 'atlas-structure');
 mustInclude('phases/atlas-structure.md', '路径铁律');
 mustExist('phases/atlas-structure.md');
 mustInclude('templates/orchestrator-core.md', '正确做法与红线（≤15）');
@@ -212,10 +210,35 @@ mustInclude('SKILL.md', '一处定义、他处只链');
 mustInclude('SKILL.md', '@agileflow/cli');
 mustInclude('SKILL.md', '/af-');
 mustInclude('SKILL.md', 'WHEN routing af:');
+mustInclude('SKILL.md', 'WHEN routing af-explore: cli/snippets/l0-routing.md');
 mustInclude('phases/00-intent-routing.md', '默认入口 `/af`');
 mustInclude('phases/00-intent-routing.md', '万能自动路由');
-mustInclude('phases/00-intent-routing.md', 'skill 根');
-mustInclude('phases/00-intent-routing.md', '找不到禁止跳过');
+mustInclude('phases/00-intent-routing.md', 'agileflow context --json');
+mustInclude('phases/00-intent-routing.md', 'routeId');
+mustInclude('phases/00-intent-routing.md', 'flow.stepIds');
+mustInclude('phases/00-intent-routing.md', '| `af-revise` |');
+mustInclude('phases/00-intent-routing.md', 'REQ 是否已确认不影响入口选择');
+assert(
+  read('phases/00-intent-routing.md').split(/\r?\n/).length <= 130,
+  '00-intent-routing.md 须保持 ≤130 行的纯路由职责',
+);
+for (const removedSection of [
+  '## 斜杠门牌细则',
+  '## §atlas/',
+  '## init 判定',
+  '## §dev 入口分支',
+  '## §TEMP',
+  '## §建模按需判定',
+  '## ① 豁免判定',
+  '## 决策权判定',
+  '## ② 读取项目状态',
+  '## 路由决策表',
+  '## 进入阶段后的行为',
+]) {
+  mustNotInclude('phases/00-intent-routing.md', removedSection);
+}
+mustNotInclude('phases/00-intent-routing.md', '跨 2+ 文件或 >20 行');
+mustNotInclude('phases/00-intent-routing.md', '| `/af-req` |');
 mustInclude('SKILL.md', '路径锚点');
 mustInclude('SKILL.md', '不是**工作区项目根');
 mustInclude('TROUBLESHOOTING.md', '00-intent-routing');

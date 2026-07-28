@@ -46,7 +46,7 @@ export const BUILTIN_CATALOG = [
     description: '探索支路（非正式阶段）',
     scope: 'routing',
     kind: 'routing',
-    phaseRel: 'phases/00-intent-routing.md',
+    phaseRel: null,
     gate: null,
   },
   {

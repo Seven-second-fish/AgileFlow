@@ -3,6 +3,7 @@
  * resolveRolePrompt / assembleSkillLayers 单元测试
  */
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -43,9 +44,11 @@ assert(!devAssembled.includes('少样本示例'), 'dev 默认不含 examples');
 
 // —— custom fixture：全文 verbatim ——
 const customRoot = path.join(fixturesRoot, 'good-req-custom-role');
-const customResolved = resolveRolePrompt(customRoot, 'req', { skillRoot });
+const customResolved = resolveRolePrompt(customRoot, 'atlas/role/role-req.md', { skillRoot });
 assert(customResolved.mode === 'custom', 'good-req-custom-role → custom 模式');
 assert(customResolved.body.includes('# 自定义'), 'custom 模式读 atlas 全文');
+const legacyResolved = resolveRolePrompt(customRoot, 'req', { skillRoot });
+assert(legacyResolved.mode === 'custom', '旧 role 短名仍兼容');
 
 // —— 默认 fixture：assembled ——
 const defaultRoot = path.join(fixturesRoot, 'good-sol-confirm');
@@ -59,9 +62,29 @@ if (fs.existsSync(atlasSol)) {
     writeRoleBaselines(defaultRoot, { force: true });
   }
 }
-const defaultResolved = resolveRolePrompt(defaultRoot, 'sol', { skillRoot });
+const defaultResolved = resolveRolePrompt(defaultRoot, 'atlas/role/role-sol.md', { skillRoot });
 assert(defaultResolved.mode === 'assembled', 'good-sol-confirm sol → assembled 模式');
 assert(defaultResolved.body.includes('assembled from skill layers'), 'assembled 来自 layers');
+
+// —— 任意项目 Role/Skill Markdown 路径：全文派发 ——
+const pathPromptRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'af-role-path-'));
+const projectSkillPath = path.join(pathPromptRoot, 'skills', 'security-review', 'SKILL.md');
+fs.mkdirSync(path.dirname(projectSkillPath), { recursive: true });
+fs.writeFileSync(projectSkillPath, '# Security Review Role\n');
+const pathResolved = resolveRolePrompt(
+  pathPromptRoot,
+  'skills/security-review/SKILL.md',
+  { skillRoot },
+);
+assert(pathResolved.mode === 'custom', '项目 Skill 路径 → custom 模式');
+assert(pathResolved.body.includes('Security Review Role'), '项目 Skill 路径读取全文');
+let traversalRejected = false;
+try {
+  resolveRolePrompt(pathPromptRoot, '../outside.md', { skillRoot });
+} catch {
+  traversalRejected = true;
+}
+assert(traversalRejected, 'prompt 禁止越出项目目录');
 
 // —— 任务信封 ——
 const envelope = buildTaskEnvelope({

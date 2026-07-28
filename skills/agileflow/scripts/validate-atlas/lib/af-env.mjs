@@ -3,6 +3,7 @@ import { collectFiles, exists, readText } from './fs-utils.mjs';
 import { isModelingSkipped } from './modeling-skip.mjs';
 import { loadFlow, bandForStep, inferStepFromFlow, inferWaveFromFlow, listFlowSteps, parseAfStep, formatAfStep, normalizeStepId, GATE_TO_STEP, getFlowStep, stepOutputsSatisfied } from './flow.mjs';
 import { effectiveGatePass } from './effective-gate.mjs';
+import { hasConfirmedRequirement } from './brownfield.mjs';
 import fs from 'node:fs';
 
 const ENV_REL = 'atlas/agileflow.env';
@@ -128,17 +129,7 @@ export function inferPhaseFromArtifacts(projectRoot, brownfield) {
     const initReadme = readText(path.join(atlas, 'init', 'README.md'));
     if (!initReadme || !isConfirmed(initReadme)) {
       // 同 inferWaveFromFlow：AF 自造源码触发 brownfield 后，有已确认 REQ 则不退回 0
-      const reqRootEarly = path.join(atlas, 'requirements');
-      const reqFilesEarly = exists(reqRootEarly)
-        ? collectFiles(reqRootEarly, '.md').filter((f) => {
-            const base = path.basename(f);
-            return base.startsWith('REQ-') && !f.includes(`${path.sep}ui${path.sep}`);
-          })
-        : [];
-      const anyConfirmedEarly = reqFilesEarly.some((f) =>
-        /状态[：:]\s*(已确认|已实现)/.test(readText(f) || ''),
-      );
-      if (!anyConfirmedEarly) return '0';
+      if (!hasConfirmedRequirement(projectRoot)) return '0';
     }
   }
 

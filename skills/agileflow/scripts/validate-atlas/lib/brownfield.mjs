@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { exists } from './fs-utils.mjs';
+import { exists, readText } from './fs-utils.mjs';
 
 /** 业务源码扩展名（有则倾向 brownfield） */
 const CODE_EXTS = new Set([
@@ -122,4 +122,41 @@ export function detectBrownfield(projectRoot) {
   }
 
   return detectBusinessSource(projectRoot);
+}
+
+/**
+ * 是否已有实质确认的需求。
+ * 目的：greenfield 在流程中生成源码后会被源码扫描识别成 brownfield，
+ * 已确认 REQ 可证明主链已经启动，不能再错误路由回 init。
+ *
+ * @param {string} projectRoot
+ * @returns {boolean}
+ */
+export function hasConfirmedRequirement(projectRoot) {
+  const reqRoot = path.join(projectRoot, 'atlas', 'requirements');
+  if (!exists(reqRoot)) return false;
+  let files = [];
+  try {
+    files = fs.readdirSync(reqRoot).filter((name) => /^REQ-\d+/i.test(name) && name.endsWith('.md'));
+  } catch {
+    return false;
+  }
+  return files.some((name) =>
+    /状态[：:]\s*(已确认|已实现)/.test(readText(path.join(reqRoot, name)) || ''),
+  );
+}
+
+/**
+ * 是否应先进入 pre-flow `af-init`。
+ * 目的：集中 brownfield + init 确认 + greenfield 误识别例外，
+ * 供 context、Flow 推断和 env 推断共用同一判定。
+ *
+ * @param {string} projectRoot
+ * @returns {boolean}
+ */
+export function needsProjectInit(projectRoot) {
+  if (!detectBrownfield(projectRoot)) return false;
+  const initReadme = readText(path.join(projectRoot, 'atlas', 'init', 'README.md')) || '';
+  if (/状态[：:]\s*已确认/.test(initReadme)) return false;
+  return !hasConfirmedRequirement(projectRoot);
 }

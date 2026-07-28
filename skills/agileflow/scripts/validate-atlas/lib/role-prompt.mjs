@@ -8,9 +8,12 @@ import {
   getFlowStep,
   bandForStep,
   BUILTIN_STEP_GATE,
+  resolveFlowPromptPath,
 } from './flow.mjs';
 
 /** @typedef {'req'|'model'|'sol'|'dev'} RoleKey */
+
+const ROLE_KEYS = new Set(['req', 'model', 'sol', 'dev']);
 
 /** 各 role 分层规格：always 每次派活必带；onDemand 按需（gate 红 / 首 T 等） */
 export const ROLE_LAYER_SPEC = {
@@ -86,14 +89,62 @@ export function readAtlasRoleBody(projectRoot, roleKey) {
 }
 
 /**
- * 双模式派活解析：custom → atlas 全文；默认 → skill layers 拼装
+ * 把 flow.yaml 的 prompt 定位到项目内文件。
+ * 目的：允许用户直接写 atlas/role/role-*.md 或项目内 Skill 的 SKILL.md，
+ * 同时拒绝绝对路径和 ../，避免 prompt 意外读出项目目录。
  * @param {string} projectRoot
- * @param {RoleKey} roleKey
+ * @param {string} promptPath
+ * @returns {string}
+ */
+function resolveProjectPromptPath(projectRoot, promptPath) {
+  const resolved = resolveFlowPromptPath(projectRoot, promptPath);
+  if (!resolved.ok) {
+    throw new Error(`prompt 路径无效：${String(promptPath || '')}（${resolved.reason}）`);
+  }
+  if (!exists(resolved.abs)) {
+    throw new Error(`prompt 文件不存在：${resolved.rel}`);
+  }
+  if (!fs.statSync(resolved.abs).isFile()) {
+    throw new Error(`prompt 须指向文件而不是目录：${resolved.rel}`);
+  }
+  return resolved.abs;
+}
+
+/**
+ * 从显式项目 Role 路径识别内置角色。
+ * 目的：默认 Flow 暴露完整路径，但仍保留默认 role 的分层渐进组装能力。
+ * 旧 req/model/sol/dev 短名只作为历史配置兼容。
+ * @param {string} promptRef
+ * @returns {RoleKey|null}
+ */
+function builtinRoleKeyFromPrompt(promptRef) {
+  const raw = String(promptRef || '').trim().replace(/\\/g, '/');
+  if (ROLE_KEYS.has(raw)) return /** @type {RoleKey} */ (raw);
+  const match = /^atlas\/role\/role-(req|model|sol|dev)\.md$/i.exec(raw);
+  return match ? /** @type {RoleKey} */ (match[1].toLowerCase()) : null;
+}
+
+/**
+ * 解析 flow prompt：
+ * - 内置项目 Role 路径 → 未改 stamp 时按 layers 渐进组装，已改时读项目全文；
+ * - 其他项目内 Markdown/Skill 文件 → 原样读取并作为自定义提示词；
+ * - req/model/sol/dev 短名 → 仅兼容旧 flow。
+ * @param {string} projectRoot
+ * @param {RoleKey|string} promptRef
  * @param {{ skillRoot?: string, includeQuality?: boolean, includeExamples?: boolean }} [ctx]
  * @returns {{ mode: 'custom'|'assembled', body: string }}
  */
-export function resolveRolePrompt(projectRoot, roleKey, ctx = {}) {
+export function resolveRolePrompt(projectRoot, promptRef, ctx = {}) {
   const skillRoot = ctx.skillRoot ?? resolveSkillRoot();
+  const rawPrompt = String(promptRef || '').trim();
+  // 显式路径必须先验证；旧短名没有路径可验，只保留兼容分支。
+  const promptPath = ROLE_KEYS.has(rawPrompt)
+    ? null
+    : resolveProjectPromptPath(projectRoot, rawPrompt);
+  const roleKey = builtinRoleKeyFromPrompt(promptRef);
+  if (!roleKey) {
+    return { mode: 'custom', body: readText(promptPath) ?? '' };
+  }
   if (isRoleCustom(projectRoot, roleKey)) {
     return { mode: 'custom', body: readAtlasRoleBody(projectRoot, roleKey) };
   }

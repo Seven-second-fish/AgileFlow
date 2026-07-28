@@ -49,7 +49,7 @@ function buildFlowSteps(entry) {
     lines.push(`1. 需要细则时再 ${readUnderSkillRoot(entry.phaseRel)}`);
   }
   lines.push(
-    '2. 以总控身份派对应 role Subagent（或 prompt:null 时总控直做）；记 `atlas/agileflow-dispatch.json`（含 stepId=`' +
+    '2. 读项目 `atlas/flow.yaml` 中当前 step 的 `prompt`：路径则加载该项目 Role 并派 Subagent，`null` 则总控直做；记 `atlas/agileflow-dispatch.json`（含 stepId=`' +
       stepId +
       '`）',
   );
@@ -81,9 +81,9 @@ function buildPreFlowSteps(entry) {
  */
 function buildExploreSteps() {
   return [
-    `1. ${readUnderSkillRoot('phases/00-intent-routing.md', ' §探索判定')}`,
-    '2. 只读分析 + 方向 AskQuestion；不写 env/REQ/源码/flow',
-    '3. 选定后进正式 flow 步或快捷轨',
+    '1. 只读相关代码、日志和现有 atlas，给出发现摘要与 2～4 个方向',
+    '2. 用方向 AskQuestion 收敛，最多两轮；不写 env/REQ/源码/flow',
+    '3. 选定后重新路由到正式 flow 步或快捷轨',
   ];
 }
 
@@ -93,8 +93,8 @@ function buildExploreSteps() {
 function buildAutoRouteSteps() {
   return [
     `1. ${readUnderSkillRoot('phases/00-intent-routing.md#agent-摘要', '（只读这一份路由 SSOT）')}`,
-    '2. 按识别顺序自动判定：`①豁免 → ①.2快捷 → ①.5探索 → ②读状态 → ③解析 → ④前置`（不弹模式菜单，除非第 7 条说不清）',
-    '3. 切入判定的门牌/步并**按该步规则执行**（如 `/af-fix`、`/af-req`、继续当前 flow 步）；首行声明 `路由：auto → …`',
+    '2. 执行 `agileflow context --json --root .`，结合用户意图得到唯一 `routeId`',
+    '3. 切入 `routeId` 对应门牌并**按该步规则执行**；首行只写 `routeId + reason`',
     '4. **禁止**写 `AF_STEP=af`；落地到真实步后才维护 env/台账/闸门',
   ];
 }
@@ -218,8 +218,9 @@ export function buildCustomBody(entry, l0) {
     SKILL_ROOT_SECTION,
     '',
     '## 本步',
-    `- 读项目 \`atlas/flow.yaml\` 中 id=\`${entry.id}\` 的 mode/depends/outputs`,
-    '- 按总控规则派活或直做；完成后 advanceStep',
+    `- 读项目 \`atlas/flow.yaml\` 中 id=\`${entry.id}\` 的 \`mode/prompt/depends/outputs\``,
+    '- `prompt` 是路径：加载该项目 Role 文件并派 Subagent；`prompt: null`：总控直做',
+    '- 完成后 `advanceStep`',
     '- **无**专用 confirm 闸门；主链硬挡仍靠下游内置 gate',
     '',
     '## 入口',

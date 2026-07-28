@@ -2,7 +2,7 @@
 
 > 文档模板：[templates/init.md](../templates/init.md)
 > 扫描与验收：[templates/init.md](../templates/init.md)
-> 路由与触发：[00-intent-routing.md](00-intent-routing.md#init-判定brownfield--greenfield)
+> 路由入口：[00-intent-routing.md](00-intent-routing.md#agent-摘要)
 
 <a id="agent-摘要"></a>
 
@@ -50,7 +50,7 @@
 | **brownfield**：已有业务源码、migration、可运行应用 | **greenfield**：纯从零、新系统、空仓库脚手架、用户明确「不需要 init」 |
 | `/af-init` | 仅 Skill/文档仓库且用户只做流程验证（可选 init，非强制） |
 | 首次接触 brownfield 且 `atlas/init/` 不存在 | REQ/model 仅设计阶段（只改 model/，**不**改 init） |
-| `/af-init refresh …` 增量/全量刷新 | 纯答疑/review；hotfix 仅**未启用 AF** 时走豁免 |
+| `/af-init refresh …` 增量/全量刷新 | 纯答疑/review；符合边界的维护任务直接走快捷轨 |
 
 **铁律**：greenfield 不创建 `atlas/init/`；brownfield 在进 `/af-dev`/`/af-sol` 前 **须** 有已确认或进行中的 init（见路由硬规则）。
 
@@ -227,7 +227,7 @@ questions:
 
 1. 该 REQ 关联 **全部** 开发任务步骤 **③ ✅**（`atlas/todo.md`）
 2. 阶段 5 **AC 验收归档** 该 REQ 验收报告完成且 REQ 标 **已实现**
-3. **阶段 4 入口** init 过期检测命中（`src/` mtime 晚于 init；见 [00-intent-routing §init 过期检测](../phases/00-intent-routing.md#init-自动触发brownfield)）且用户选择 refresh
+3. **阶段 4 入口**发现 `src/` mtime 晚于 init，且用户选择 refresh
 
 **前提**：本次实现已改变 as-is（新表/新实体/新目录/环境变更等）。仅改文案/UI 样式且无结构变化 → 可 AskQuestion 后选「跳过」。
 
