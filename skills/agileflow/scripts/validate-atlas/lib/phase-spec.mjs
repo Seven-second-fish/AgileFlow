@@ -300,7 +300,7 @@ export const AI_GATES = {
 
     phase: '4',
 
-    modules: ['af-env', 'dir', 'todo', 'dev', 'runnable', 'pixel', 'doc-first', 'req-ac-backfill', 'dispatch-ledger', 'af-commands'],
+    modules: ['af-env', 'dir', 'todo', 'dev', 'bugs', 'runnable', 'pixel', 'doc-first', 'req-ac-backfill', 'dispatch-ledger', 'af-commands'],
     docFirstScope: 'integrity',
 
     when: '全部 T ③ 完成 · 标「开发实现 ✅」前',
@@ -316,7 +316,7 @@ export const AI_GATES = {
 
     phase: '5',
 
-    modules: ['af-env', 'dir', 'tests', 'todo', 'runnable', 'smoke', 'pixel', 'doc-first', 'req-ac-backfill', 'dispatch-ledger', 'af-commands'],
+    modules: ['af-env', 'dir', 'tests', 'bugs', 'todo', 'runnable', 'smoke', 'pixel', 'doc-first', 'req-ac-backfill', 'dispatch-ledger', 'af-commands'],
     docFirstScope: 'integrity',
 
     when: '进入阶段 5 · 测试入场门禁前',
@@ -351,4 +351,3 @@ export const AI_GATES = {
   },
 
 };
-

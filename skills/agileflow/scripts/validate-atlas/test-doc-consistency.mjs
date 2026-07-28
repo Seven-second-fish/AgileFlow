@@ -52,6 +52,7 @@ mustExist('templates/init.md');
 mustExist('templates/req.md');
 mustExist('templates/uid.md');
 mustExist('templates/model.md');
+mustExist('templates/bug.md');
 mustExist('templates/orchestrator-core.md');
 mustExist('templates/orchestrator-ref.md');
 mustExist('templates/orchestrator.md');
@@ -218,6 +219,14 @@ mustInclude('phases/00-intent-routing.md', 'routeId');
 mustInclude('phases/00-intent-routing.md', 'flow.stepIds');
 mustInclude('phases/00-intent-routing.md', '| `af-revise` |');
 mustInclude('phases/00-intent-routing.md', 'REQ 是否已确认不影响入口选择');
+mustInclude('phases/00-intent-routing.md', '收到缺陷列表不等于需求错误');
+mustInclude('phases/quick-commands.md', '### 批量缺陷入口');
+mustInclude('phases/quick-commands.md', '混合批次逐条分类');
+mustInclude('phases/quick-commands.md', 'agileflow validate --only bugs');
+mustInclude('phases/atlas-structure.md', 'atlas/bugs/');
+mustExist('scripts/validate-atlas/lib/rules/bugs.mjs');
+mustInclude('scripts/validate-atlas/index.mjs', "'bugs'");
+mustInclude('scripts/validate-atlas/lib/phase-spec.mjs', "'bugs'");
 assert(
   read('phases/00-intent-routing.md').split(/\r?\n/).length <= 130,
   '00-intent-routing.md 须保持 ≤130 行的纯路由职责',

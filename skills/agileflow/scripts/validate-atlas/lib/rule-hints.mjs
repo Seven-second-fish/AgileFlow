@@ -3,6 +3,18 @@
  * @type {Record<string, { plain: string, who: 'ai' | 'user' | 'both' }>}
  */
 export const RULE_HINTS = {
+  'BUG-REQ-TRACE': {
+    plain: 'Bug 修复前未关联明确 REQ + AC；先补齐需求对账，不能直接改代码',
+    who: 'ai',
+  },
+  'BUG-TEST-TRACE': {
+    plain: 'Bug 已进入待回归，但还没有回归测试或人工验证证据',
+    who: 'ai',
+  },
+  'BUG-CLOSE-EVIDENCE': {
+    plain: 'Bug 标记已关闭但缺验证证据；代码改完不等于缺陷关闭',
+    who: 'ai',
+  },
   'SOL-API-NO-JSON': {
     plain: 'API 契约只有表格、没有 JSON 示例',
     who: 'ai',

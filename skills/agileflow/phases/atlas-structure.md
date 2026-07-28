@@ -37,6 +37,8 @@ atlas/
 │   └── code-patterns-{端}.md  # greenfield 模式 B 🌱
 ├── conventions/               # 模式 A 可选；默认不建
 ├── dev/                       # /af-dev 产物 · 每任务一份构思 T-xxx（不放业务源码）
+├── bugs/                      # /af-revise 按需产物 · 批量/跨层/阻塞缺陷追踪
+│   └── README.md · BUG-xxx-*.md（复杂项按需）
 ├── tests/                     # /af-test 产物
 │   ├── README.md · REQ-*-验收报告.md
 │   └── fe-pixel/
@@ -55,6 +57,8 @@ atlas/
 - **`atlas/flow.yaml`**：完整轨步骤开闭（YAML）；仅总控改；schema → [flow](../templates/flow.md)。**不**放开发任务（任务在 `todo.md`）
 - **`atlas/role/` + `humanTodo.md` + `agileflow-dispatch.json`**：首启 `--bootstrap-scaffold --root {项目根}` 写入**项目** atlas/（非 skill 目录）；派活只读 `atlas/role/`
 - 各目录下 `temp/` 放临时稿（见 [§TEMP](#temp-临时目录)）
+- **`atlas/bugs/` 按需创建**：批量、跨层、阻塞、重开或高风险缺陷才落盘；模板见
+  [bug.md](../templates/bug.md)。状态只在 `bugs/README.md` 维护，测试证据仍放 `tests/`。
 - 无独立前缀：`atlas/todo.md` / `humanTodo.md` / `active-edits.md` 随阶段 1/3/4 更新（路径始终在 atlas 根，不进 solution/）
 - **业务源码**写在工程正常位置（如 `src/`、`miniprogram/`），**不**塞进 `atlas/`
 - **只链不抄**：验收/线框/API 各有唯一权威，见 [SKILL 裁决表](../SKILL.md)

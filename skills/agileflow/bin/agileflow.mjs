@@ -44,6 +44,7 @@ ${name} v${version}  (bin: agileflow)
     追加 atlas/logs/af-commands.md（/af* 强制留痕；闸门硬验）
   agileflow step sync [--root .]
   agileflow context [--json] [--root .]   只读输出路由所需项目状态
+  agileflow validate --only bugs [--root .]   校验缺陷需求追踪与关闭证据
   agileflow run start --change <id> [--step af-req] [--profile standard] [--root .]
   agileflow run status [--json] [--root .]
   agileflow run gate-status --gate req-confirm [--json] [--root .]

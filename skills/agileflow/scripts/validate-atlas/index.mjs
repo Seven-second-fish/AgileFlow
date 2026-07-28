@@ -17,6 +17,7 @@ import { validateTodo } from './lib/rules/todo.mjs';
 import { validateDev } from './lib/rules/dev/index.mjs';
 import { validateGenericDocs } from './lib/rules/generic-doc.mjs';
 import { validateTests } from './lib/rules/tests.mjs';
+import { validateBugs } from './lib/rules/bugs.mjs';
 import { validateRunnable } from './lib/rules/runnable.mjs';
 import { validateSmokeEntry } from './lib/rules/smoke.mjs';
 import { validatePixelCompare } from './lib/rules/pixel.mjs';
@@ -37,6 +38,7 @@ import { validateFlowScope } from './lib/scope.mjs';
 export const VALID_ONLY_MODULES = new Set([
   'af-commands',
   'af-env',
+  'bugs',
   'dev',
   'dir',
   'dispatch-ledger',
@@ -266,6 +268,10 @@ export function validateAtlas(options = {}) {
   }
   if (shouldRun('tests') && (phase === 'all' || phase === '5')) {
     validateTests(projectRoot, reporter);
+  }
+  // bugs 是跨阶段、按需存在的修复账本；目录不存在时校验器直接跳过。
+  if (shouldRun('bugs')) {
+    validateBugs(projectRoot, reporter);
   }
   if (shouldRun('smoke') && (phase === 'all' || phase === '5')) {
     validateSmokeEntry(projectRoot, reporter, { incremental: options.incremental });

@@ -1,6 +1,6 @@
 {
   "name": "@agileflow/cli",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "AgileFlow CLI：init 挂载门牌 skill + validate-atlas 闸门",
   "type": "module",
   "bin": {
@@ -63,7 +63,8 @@
     "fe-pixel": "node scripts/fe-pixel/fe-pixel.mjs",
     "test:cli": "node cli/test-init.mjs",
     "test:runtime": "node cli/test-runtime.mjs && node cli/test-context.mjs && node cli/test-gate-runtime.mjs && node scripts/validate-atlas/test-gate-receipts.mjs && node scripts/agent-retest/test-score.mjs",
-    "test:validate": "node scripts/validate-atlas/test-fixtures.mjs && node scripts/validate-atlas/test-af-env.mjs && node scripts/validate-atlas/test-req-ac-backfill.mjs && node scripts/validate-atlas/test-template-mode.mjs && node scripts/validate-atlas/test-doc-consistency.mjs && node scripts/validate-atlas/test-skill-examples.mjs && node scripts/validate-atlas/test-flow.mjs && node scripts/validate-atlas/test-scope.mjs && node scripts/validate-atlas/test-af-commands.mjs && node scripts/validate-atlas/test-gate-receipts.mjs && node cli/test-init.mjs && node cli/test-runtime.mjs && node cli/test-context.mjs && node cli/test-gate-runtime.mjs && node scripts/agent-retest/test-score.mjs",
+    "test:validate": "node scripts/validate-atlas/test-fixtures.mjs && node scripts/validate-atlas/test-af-env.mjs && node scripts/validate-atlas/test-req-ac-backfill.mjs && node scripts/validate-atlas/test-template-mode.mjs && node scripts/validate-atlas/test-doc-consistency.mjs && node scripts/validate-atlas/test-skill-examples.mjs && node scripts/validate-atlas/test-flow.mjs && node scripts/validate-atlas/test-scope.mjs && node scripts/validate-atlas/test-af-commands.mjs && node scripts/validate-atlas/test-bugs.mjs && node scripts/validate-atlas/test-gate-receipts.mjs && node cli/test-init.mjs && node cli/test-runtime.mjs && node cli/test-context.mjs && node cli/test-gate-runtime.mjs && node scripts/agent-retest/test-score.mjs",
+    "test:bugs": "node scripts/validate-atlas/test-bugs.mjs",
     "test:af-env": "node scripts/validate-atlas/test-af-env.mjs",
     "test:docs": "node scripts/validate-atlas/test-doc-consistency.mjs",
     "sync:fixture-baselines": "node scripts/validate-atlas/sync-fixture-role-baselines.mjs",

@@ -38,6 +38,7 @@
 | 看领域模型 | [model/README.md](model/README.md) |
 | 看接口与架构 | [solution/README.md](solution/README.md) |
 | 看开发进度 | [todo.md](todo.md) |
+| 看缺陷处理 | [bugs/README.md](bugs/README.md)（存在时） |
 | 看未决事项 | [humanTodo.md](humanTodo.md) |
 ```
 
