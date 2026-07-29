@@ -8,12 +8,12 @@
 
 <p align="center">
   A staged delivery skill and CLI for AI coding agents.<br>
-  Speak once in plain language; it handles routing, delegation, artifacts, gates, and resumable state.
+  Say what you need; it chooses the workflow, saves delivery artifacts, verifies results, and resumes interrupted work.
 </p>
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@agileflow/cli"><img src="https://img.shields.io/npm/v/@agileflow/cli.svg?style=flat-square&color=cb3837" alt="npm"></a>
-  <a href="skills/agileflow/templates/validate-atlas-gate.md"><img src="https://img.shields.io/badge/gates-9%20hard-brightgreen?style=flat-square" alt="9 hard gates"></a>
+  <a href="skills/agileflow/templates/validate-atlas-gate.md"><img src="https://img.shields.io/badge/checks-9%20automatic-brightgreen?style=flat-square" alt="9 automatic checks"></a>
   <img src="https://img.shields.io/badge/routing-/af-7c3aed?style=flat-square" alt="semantic routing">
   <img src="https://img.shields.io/badge/flow-extensible-2563eb?style=flat-square" alt="extensible flow">
   <img src="https://img.shields.io/badge/agents-multi--role-0891b2?style=flat-square" alt="multi-agent">
@@ -23,36 +23,34 @@
 
 ```bash
 npx @agileflow/cli@latest init
-/af build an order API with WeChat and Alipay refunds — you decide the rest
+/af build an order API with WeChat and Alipay refunds — handle the rest
 ```
 
 > **Important:** AgileFlow is not just a prompt pack.
 >
-> **AgileFlow = `/af` semantic routing + extensible `flow.yaml` + multi-agent roles + 9 hard gates + Run-scoped receipts + an `atlas/` evidence pack.**
+> **AgileFlow = one `/af` entry point + an adaptable delivery workflow + automatic quality checks + a resumable `atlas/` delivery pack.**
 
-**Jump to:** [Demo](#what-a-session-looks-like) · [Problems](#problems-it-solves) · [Quick start](#start-in-1-minute) · [Four moves](#four-hard-moves) · [Compare](#vs-openspec-and-superpowers) · [Deeper](#deeper-mechanisms-and-extension)
+**Jump to:** [Demo](#what-a-session-looks-like) · [Problems](#problems-it-solves) · [Quick start](#start-in-1-minute) · [Core capabilities](#four-core-capabilities) · [Compare](#vs-openspec-and-superpowers) · [Advanced](#advanced-how-it-works-and-how-to-extend-it)
 
 ---
 
 ## What a session looks like
 
 ```text
-You  /af build an order API with WeChat and Alipay refunds — you decide the rest
-AI   → Routes to full delivery pipeline
-     → AF_DECIDE=ai (fewer stops; docs and gates stay full)
-     → Starts a Run, enters af-req
-     → Subagent lands requirements/REQ-*.md (BDD AC)
-     → req-confirm green → solution / contracts on disk
-     → write-code green → only then business code
-     → Per-task ## 结果 (commands that really ran + exit codes)
-     → Acceptance report PASS / FAIL
-You  Open atlas/ — evidence pack ready to hand off
+You  /af build an order API with WeChat and Alipay refunds — handle the rest
+AI   → Recognizes a new feature that needs full delivery
+     → Clarifies requirements and acceptance criteria
+     → Defines API contracts, failure cases, and development tasks
+     → Checks that the plan is complete, then starts coding
+     → Runs tests and records the actual commands and results
+     → Reports what passed and anything that still needs a person
+You  Open atlas/ — requirements, design, implementation notes, and test results are ready to hand off
 
 Later /af
-AI   → Reads flow.yaml · env · todo · active Run, resumes from checkpoint
+AI   → Reads saved progress and continues from the last checkpoint
 ```
 
-> `/af` is a **chat doorplate** for the agent — **not** a shell command. Use `npx @agileflow/cli`, not bare `npx agileflow` (unrelated package on npm).
+> `/af` is a **chat command** for the agent — **not** a shell command. Use `npx @agileflow/cli`, not bare `npx agileflow` (an unrelated npm package).
 
 ---
 
@@ -64,9 +62,9 @@ AI   → Reads flow.yaml · env · todo · active Run, resumes from checkpoint
 | Code first, missing design | No `write-code` green → no business code |
 | Verbal “we tested it” | Checks real commands, exit codes, reports |
 | Checked tasks, missing files | Cross-checks todo · T docs · proof · acceptance |
-| Who did what is unclear | `agileflow-dispatch.json` ledger |
-| Chat dies, work dies | Resume via `todo + env + Run` |
-| Stale PASS after edits | Receipts bind content digests; invalidate on change |
+| Multi-agent work is hard to trace | Saves assignments and execution records |
+| Chat closes, work is lost | Saves progress and resumes from the checkpoint |
+| Old success is reused after edits | Results bind to file contents and are rechecked after changes |
 
 You leave with more than “code + done”:
 
@@ -97,14 +95,14 @@ Reload the host, then in chat:
 /af build a user login API
 ```
 
-If you did not say “you decide”, the agent asks first:
+If you did not specify who should make decisions, the agent asks first:
 
-| Mode | Effect |
-|------|--------|
-| **You decide** | `AF_DECIDE=ai`: continue in-session after green gates |
-| **I'll decide** | `AF_DECIDE=user`: pause at key stages for your OK |
+| What you say | Effect |
+|--------------|--------|
+| **Handle the rest** | The agent continues after automatic checks and minimizes interruptions |
+| **Let me confirm key decisions** | The agent pauses for you at requirements, solution, and other key decisions |
 
-Quality bar is identical. “You decide” cuts stops only — **not** docs, tests, or gates.
+The quality bar is identical. Delegating decisions reduces interruptions; it **does not remove documentation or skip tests**.
 
 Project-only install:
 
@@ -118,7 +116,7 @@ Bare `/af` → read progress and resume.
 
 ---
 
-## Four hard moves
+## Four core capabilities
 
 ### 1. `/af` semantic routing
 
@@ -126,28 +124,32 @@ No need to memorize stages.
 
 | You say | Default route |
 |---------|---------------|
-| “Build a refund API” | Full: req → model? → sol → dev → test |
-| “Fix login timeout” / “add this unit test” | Quick track |
-| “Explore the bottleneck first” | Explore branch |
+| “Build a refund API” | Full delivery: requirements → solution → development → acceptance |
+| “Fix login timeout” / “add this unit test” | Handle the focused task directly |
+| “Explore the bottleneck first” | Analyze and recommend without changing code |
 | Bare `/af` / “continue” | Resume |
 
-Power users still jump with `/af-req` `/af-sol` `/af-dev` `/af-test`; doorplates cannot skip `flow.yaml` deps or gates.
+Advanced users can still jump to `/af-req`, `/af-sol`, `/af-dev`, or `/af-test`; direct stage commands do not bypass prerequisites or automatic checks.
 
 ### 2. Extensible `flow.yaml`
 
 `atlas/flow.yaml` is the project execution graph: custom steps, depends, parallel waves, outputs.  
-`prompt` may be a short name (`req`/`model`/`sol`/`dev`), `null` (orchestrator-direct), or a **path to an existing role file** (e.g. `atlas/role/role-security.md`).  
-After flow changes: run `update --step-skills-only` to refresh `/af-*` doorplates, then **abandon the old Run + start a new one** — stale PASS cannot sneak through.
+Most users never need to edit it. For custom workflows, `prompt` may be a short name (`req`/`model`/`sol`/`dev`), `null` (handled by the current agent), or a **path to an existing role file** (for example, `atlas/role/role-security.md`).
 
-### 3. Hard gates + Run-scoped receipts
+After flow changes, run `update --step-skills-only` to refresh `/af-*` commands, then **abandon the old Run + start a new one** so the new workflow is checked from the start.
 
-Nine gates; done = `exit 0`.  
-PASS binds `runId`, step attempt, `flow` digest, and artifact digests. Edit artifacts, rewind, or change flow → old receipts die.  
-`gate` only verifies — **it never fabricates evidence for the agent**.
+### 3. Automatic quality checks
 
-### 4. `atlas/` evidence pack + multi-agent ledger
+Nine checks cover requirements, solution, implementation evidence, and acceptance. All must pass before the task is complete.
 
-Orchestrator routes; Subagents write body; dispatch lands in `agileflow-dispatch.json`.  
+Each successful result binds to the current task, workflow version, and file contents. Editing artifacts, rewinding a stage, or changing the flow invalidates old results.
+
+Checks only verify existing evidence — **they never invent evidence for the agent**.
+
+### 4. An `atlas/` delivery pack with execution history
+
+`atlas/` stores requirements, design, tasks, acceptance results, and multi-agent execution history.
+
 Close the IDE and still hand off. Auditors can answer: **how was this requirement proven?**
 
 ---
@@ -181,7 +183,7 @@ They help you **think clearly and write correctly**. AgileFlow owns **whether fi
 |---|----------|-------------|---------------|
 | Owns | How specs evolve | How plans execute (TDD) | **Whether the delivery pack is complete and evidenced** |
 | “Done” | Soft alignment | Skills + review | **CLI hard-block; `exit 0` to advance** |
-| You leave with | Living `specs/` | Plan + code discipline | **`atlas/` + sign-off + Run receipts + ledger** |
+| You leave with | Living `specs/` | Plan + code discipline | **`atlas/` delivery pack + acceptance results + execution history** |
 
 Not mutually exclusive: OpenSpec for long-lived specs, Superpowers for execution craft, AgileFlow for the delivery boundary.
 
@@ -197,22 +199,22 @@ AgileFlow is a **delivery protocol and validation layer** for agents — not a c
 
 ---
 
-## Deeper: mechanisms and extension
+## Advanced: how it works and how to extend it
 
 ### Why “fake done” is hard
 
 Formal flow creates `atlas/runs/<runId>/`. Each stage closes the loop:
 
 ```text
-Subagent output → artifact scan → log (doorplate) → gate → run gate-status → step sync
+Role-agent output → register files → record execution → run checks → save results → advance progress
 ```
 
-- Green gate = valid PASS for **this Run / attempt / flow / artifacts** — not “it was green once.”
+- A passed check is valid for **this Run / attempt / flow / artifacts** — not merely “it passed once.”
 - With an active Run, only Runtime JSONL receipts count; legacy Markdown PASS cannot backfill.
 - Secrets, approvals, real devices go to `humanTodo.md` — never fake PASS.
 
 <details>
-<summary>Nine hard gates</summary>
+<summary>Nine automatic checks and their internal names</summary>
 
 | Gate | Blocks |
 |------|--------|
@@ -228,11 +230,13 @@ Subagent output → artifact scan → log (doorplate) → gate → run gate-stat
 
 </details>
 
-### How multi-agent splits work
+### How multiple agents collaborate
 
-Current session = orchestrator: read flow, dispatch, run gates, advance state.  
-req / model / sol / dev bodies come from role Subagents; dispatch is written to `agileflow-dispatch.json`.  
-Hosts without Subagents enter explicit degraded mode — **quality gates do not relax**.
+The current session coordinates the work: it reads the workflow, assigns tasks, runs checks, and advances progress.
+
+Requirement, modeling, solution, and development content comes from the corresponding role agents; execution is recorded in `agileflow-dispatch.json`.
+
+Hosts without sub-agent support explicitly report degraded operation — **quality standards do not relax**.
 
 ### Extending it
 
@@ -240,17 +244,17 @@ Hosts without Subagents enter explicit degraded mode — **quality gates do not 
 |-------|-------|--------------|
 | Steps | `atlas/flow.yaml` | Security review, design review, … |
 | Depends / parallel | `depends` · `outputs` | Waves and artifact waits |
-| Roles / prompts | `prompt` + `atlas/role/*.md` | Short name, orchestrator-direct, or a prompt path |
-| Doorplates | `update --step-skills-only` | Materialize new `af-*` steps as host `/af-*` skills |
+| Roles / prompts | `prompt` + `atlas/role/*.md` | Short name, current-agent execution, or a prompt path |
+| Chat commands | `update --step-skills-only` | Make new `af-*` steps available as host `/af-*` commands |
 | Validation | gate / validator | Team “done” as non-zero exit |
 
 **Three `prompt` forms:**
 
 | `prompt` | Who runs / what is loaded |
 |----------|---------------------------|
-| `req` / `model` / `sol` / `dev` | Subagent; default layers, or project override `atlas/role/role-{key}.md` |
-| `null` | Orchestrator-direct; reads the matching `phases/*.md` for the step id |
-| `atlas/role/role-xxx.md` | Subagent; **file must already exist** (team custom role) |
+| `req` / `model` / `sol` / `dev` | Corresponding role agent; default instructions, or project override `atlas/role/role-{key}.md` |
+| `null` | Current agent; reads the matching `phases/*.md` for the step id |
+| `atlas/role/role-xxx.md` | Corresponding role agent; **file must already exist** (team custom role) |
 
 Example: insert a security review with a custom role file:
 
@@ -266,12 +270,12 @@ steps:
       - atlas/logs/security-review.md
 ```
 
-After editing flow, **refresh doorplates** so hosts get `/af-security-review`:
+After editing flow, **refresh chat commands** so hosts get `/af-security-review`:
 
 ```bash
 npx @agileflow/cli@latest update --step-skills-only --root .
 # → creates/updates .cursor|claude|…/skills/af-security-review/SKILL.md
-# → removes doorplates for custom steps deleted from flow
+# → removes commands for custom steps deleted from flow
 ```
 
 Then rotate the Run (flow changes cannot reuse old PASS):
@@ -281,7 +285,8 @@ npx @agileflow/cli run abandon --reason "added security review step" --root .
 npx @agileflow/cli run start --change security-review --step af-req --root .
 ```
 
-> **Flow change = `update --step-skills-only` (doorplates) + abandon old Run + start new Run.**  
+> **Flow change = `update --step-skills-only` (refresh commands) + abandon old Run + start new Run.**
+>
 > Edit yaml without update → no new `/af-*` in chat. Update without a new Run → receipts may still bind the old `flowDigest`.
 
 New steps / depends / output paths: edit `flow.yaml`.  

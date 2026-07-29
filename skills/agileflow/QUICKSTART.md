@@ -1,284 +1,269 @@
 # AgileFlow 快速上手
 
-> **安装约 1 分钟；完整跑完一个功能约 30 分钟**（含落盘、闸门、可运行证据）。下文按实战顺序说明你会遇到什么。
+> 安装约 1 分钟。普通使用只需要记住：在聊天里输入 `/af`，然后说清楚你想完成什么。
 
----
-
-## 30 秒速览（只看这里就能开始）
+## 30 秒开始
 
 ```bash
-# 1️⃣ 安装（一次）
+# 安装一次
 npx @agileflow/cli@latest init
 ```
 
-```
-# 2️⃣ 在你的 AI 工具里说：
+重启或重新加载你的 AI 编程工具，然后在聊天中输入：
+
+```text
 /af 做一个用户登录 API
 ```
 
-**完了。** AI 会自动判定模式、引导流程、落盘文档、写码、过闸门。你只需在启动卡选「你定」或「我来」。
+AgileFlow 会自己判断这是新功能、维护、探索还是旧项目改造，并选择合适的处理方式。
+你不需要先学习需求、方案、开发、测试分别对应什么命令。
 
-| 你只想记一个命令 | 说明 |
-|------|------|
-| **`/af` + 说人话** | AI 自动匹配模式（快捷/探索/完整流程）并执行 |
-| `/af`（无正文） | 读进度 → 从断点继续 |
-| `/af-fix 修 xxx` | 快捷修 bug（零文档） |
-| `/af-req` `/af-sol` `/af-dev` `/af-test` | Power user 直接指定阶段 |
+如果希望 AI 尽量连续完成：
 
-> 英文：AgileFlow enforces a structured req→model→sol→dev→test pipeline with hard quality gates, while keeping humans in control via `AF_DECIDE`. Just type `/af` + describe what you want.
+```text
+/af 做一个用户登录 API，后面都交给你，只有真正需要我时再问
+```
+
+如果希望关键决定都由你确认：
+
+```text
+/af 做一个用户登录 API，每个关键决定先让我确认
+```
+
+两种方式的质量标准相同，区别只是确认次数。
+
+## 你只需要会这四种表达
+
+| 你说 | AgileFlow 会做什么 |
+|------|--------------------|
+| `/af` + 目标 | 开始或处理一项工作 |
+| `/af` | 读取已有进度并继续 |
+| `先分析，不要修改` | 只调查并给出结构化建议 |
+| `后面都交给你` / `这一步我来确认` | 随时切换决定方式 |
+
+修 bug、补测试、改文案、重构和性能优化也可以直接说人话：
+
+```text
+/af 修复登录超时
+/af 给订单服务补单元测试
+/af 首页标题改成“工作台”
+```
+
+不必先判断该用 `/af-fix`、`/af-ut` 还是其他高级命令。
+
+## 第一次任务会发生什么
+
+以“做一个登录 API”为例：
+
+| 顺序 | AgileFlow 做什么 | 你会看到什么 |
+|------|------------------|--------------|
+| 1 | 确认目标与验收方式 | 需求摘要；信息不足时只问关键问题 |
+| 2 | 设计边界和实现方式 | API、数据、安全与任务拆分 |
+| 3 | 实现并运行检查 | 代码、编译结果、相关测试 |
+| 4 | 对照验收条件验证 | PASS、失败原因或需要你处理的事项 |
+| 5 | 保存交付证据 | `atlas/` 中可接手的需求、方案和验收记录 |
+
+完整对话与文件变化见
+[端到端交互实录](examples/flow-interaction.md#完整实录从一句话到可交付结果)。
+
+## 三种常见用法
+
+### 新功能
+
+```text
+/af 做一个微信支付回调模块，需要处理并发和幂等，后面都交给你
+```
+
+AgileFlow 会依次明确验收标准、形成方案、实现并验证。需要密钥、审批或真实设备时，
+会清楚告诉你需要提供什么。
+
+### 修改已有项目
+
+```text
+/af 修改登录模块的超时处理
+```
+
+AgileFlow 默认只分析登录模块及直接边界；发现真实跨模块依赖才扩大到直接上下游。
+只有你明确要求完整盘点，或任务确实影响整个仓库时，才扫描全项目。
+
+### 先听建议
+
+```text
+/af 先分析这个项目为什么慢，给我几个方向，不要修改
+```
+
+AgileFlow 只读代码和现有资料，返回证据、候选方向、利弊和建议。默认不创建文档，
+也不修改代码。
+
+## 中断后继续
+
+关闭对话不会丢失已经保存的进度。打开新对话后输入：
+
+```text
+/af
+```
+
+AgileFlow 会读取仓库中的任务状态，从尚未完成的位置继续，不需要你重新解释。
+
+如果上次停在需要你提供资源的地方，先完成该事项，再说：
+
+```text
+已配置支付测试密钥，继续
+```
+
+## 常见问题
+
+### 修一行 bug 也会生成很多文档吗？
+
+不会。明确的小修复会直接修改并验证；只有发现它涉及新需求、接口变化、安全风险或
+多个模块时，才升级为完整交付流程。
+
+### 我不懂技术方案，怎么选？
+
+直接说“你推荐一个并说明理由”。AgileFlow 会比较可行方向并给出建议；如果你已经
+授权直接实施，它会选择后继续，不会因为你“不知道怎么做”就停在讨论阶段。
+
+### AI 为什么停下来了？
+
+通常只有三种原因：
+
+1. 需要你决定产品方向。
+2. 需要你提供密钥、账号、审批或真实设备。
+3. 自动检查失败，当前结果还不能安全进入下一步。
+
+打开 [排障指南](TROUBLESHOOTING.md)，先看“现在谁需要行动”。
+
+### 根目录为什么多了 `atlas/`？
+
+它是交付资料目录，保存需求、方案、任务进度、验收报告和可恢复状态。团队项目通常
+应该提交主要内容；`atlas/logs/` 和本地临时产物可以按团队约定忽略。不要直接忽略
+整个 `atlas/`。
 
 ---
 
-## 1. 安装（1 分钟）
+## 高级使用：项目安装与内部机制
 
-**最轻量（推荐首次）：用户级，全平台一次装好**
+> 从这里开始面向维护者和希望定制流程的高级用户。普通使用可以停在上面。
 
-```bash
-npx @agileflow/cli@latest init
-# → ~/.cursor/skills/、~/.agents/skills/、~/.claude/skills/、~/.workbuddy/skills/、~/.codebuddy/skills/、~/.qoder/skills/
-# 重启各 IDE / Agent 后全局可用
-```
-
-**项目级：只给当前仓库装（统一装到 `{项目}/skills/`）**
+### 安装到单个项目
 
 ```bash
 cd YOUR_PROJECT
 npx @agileflow/cli@latest init --root .
-# → skills/agileflow/ + skills/af-*/（所有宿主共用这一份）
-# 默认先删旧再装，不留 .bak；旧 .cursor|.claude|…/skills/ 安装会被顺带清理
-# 脚手架（写入 atlas/ 骨架）：
+# → skills/agileflow/ + skills/af-*/
+
+# 只补缺失的 atlas 基础文件，不覆盖已有内容
 npx @agileflow/cli gate --bootstrap-scaffold --root .
 ```
 
-> 安装完直接发 `/af` 就能用。下面详细解释各步骤。
+| 安装方式 | 位置 | 适用场景 |
+|----------|------|----------|
+| `init` | 各宿主的用户级 skills 目录 | 一次安装，多个项目共用 |
+| `init --root .` | `{项目}/skills/` | 团队希望项目自带同一版本 |
 
-| 命令 | 装到哪 | 说明 |
-|------|--------|------|
-| `init` | 用户 HOME 下各宿主 skills | 全部宿主（cursor+claude+codex+workbuddy+codebuddy+qoder） |
-| `init --root .` | `{项目}/skills/`（单份，各宿主共用） | `--tools` 仅影响旧路径清理，默认全部 |
+用户级目录：
 
-各宿主 skills 根：
+| 宿主 | 目录 |
+|------|------|
+| Cursor | `~/.cursor/skills/` |
+| Claude | `~/.claude/skills/` |
+| Codex | `~/.agents/skills/` |
+| WorkBuddy | `~/.workbuddy/skills/` |
+| CodeBuddy | `~/.codebuddy/skills/` |
+| Qoder | `~/.qoder/skills/` |
 
-| 宿主 | 用户级 | 项目级（`--root .`） |
-|------|--------|----------------------|
-| Cursor | `~/.cursor/skills/` | `skills/` |
-| Claude | `~/.claude/skills/` | `skills/` |
-| Codex | `~/.agents/skills/` | `skills/` |
-| WorkBuddy | `~/.workbuddy/skills/` | `skills/` |
-| CodeBuddy | `~/.codebuddy/skills/` | `skills/` |
-| Qoder | `~/.qoder/skills/` | `skills/` |
+> Codex 的当前官方目录是 `~/.agents/skills/`；`~/.codex/skills/` 仅作为旧路径清理。
+> `--tools workbuddy` 或 `codebuddy` 会同时安装到两种宿主目录。
 
-> **项目级统一 `skills/`**：所有宿主读同一份，不再按宿主分目录；旧路径（`.cursor/skills/` 等）里 CLI 生成的内容会在 init/update 时自动清理。
->
-> **Codex 说明**：用户级官方路径为 [`~/.agents/skills/`](https://developers.openai.com/codex/skills)；`~/.codex/skills/` 为旧路径仅清理。
->
-> **WorkBuddy / CodeBuddy**：用户级目录不同；`--tools workbuddy` 或 `codebuddy` 会**两边都装**。
+不要使用裸命令 `npx agileflow`，npm 上存在无关同名包。安装和更新请使用
+`npx @agileflow/cli@latest`；`@latest` 可以避免 npx 继续复用旧缓存。
 
-改 `atlas/flow.yaml` 后刷新门牌 skill：
+### `atlas/` 中的主要内容
+
+| 路径 | 用途 |
+|------|------|
+| `flow.yaml` | 项目的执行步骤、依赖和预期产物 |
+| `todo.md` | 当前任务和开发进度 |
+| `humanTodo.md` | 需要人提供的密钥、资源、审批或真机操作 |
+| `requirements/` | 可验收的需求 |
+| `solution/` | 架构、接口和实现边界 |
+| `dev/` | 每个开发任务的设计、实现与运行结果 |
+| `tests/` | 最终验收报告 |
+| `runs/` | 当前执行的产物摘要和可信检查回执 |
+| `agileflow-dispatch.json` | 多 Agent 的内部执行记录 |
+
+`agileflow.env`、`AF_STEP`、`AF_DECIDE` 和执行记录属于内部协议。普通用户不需要
+手动维护；排障或扩展流程时再查看。
+
+### 查看和排查 Runtime
+
+正式流程会创建一个 Run。检查通过记录会绑定当前 Run、步骤、流程版本和产物摘要；
+产物或 `flow.yaml` 变化后，旧记录自动失效。
+
+```bash
+agileflow run status --json --root .
+agileflow artifact scan --root .
+agileflow gate req-confirm --root .
+agileflow run gate-status --gate req-confirm --json --root .
+```
+
+修改执行图后，旧 Run 不再适用：
+
+```bash
+agileflow run abandon --reason "flow 已变更" --root .
+```
+
+### 修改提示词或增加步骤
+
+| 目标 | 修改位置 | 生效方式 |
+|------|----------|----------|
+| 修改角色提示词 | `atlas/role/role-*.md` | 下一次该步骤使用新提示词 |
+| 增加流程步骤 | `atlas/flow.yaml` | 增加 `id`、`prompt`、`depends`、`outputs` |
+| 刷新聊天命令 | — | `update --step-skills-only` |
+
+新步骤示例：
+
+```yaml
+- id: af-security-review
+  mode: strict
+  prompt: atlas/role/role-security-review.md
+  depends:
+    - atlas/solution/
+  outputs:
+    - atlas/security/review.md
+```
+
+刷新：
 
 ```bash
 npx @agileflow/cli@latest update --step-skills-only --root .
 ```
 
-### 开发者（AgileFlow 仓库本身）
+默认步骤 id 为：
 
-- **唯一源**：`skills/agileflow/`（`SKILL.md`、`phases/`、`templates/`、`cli/`、`scripts/`）
-- **勿**在仓库内提交 `.cursor/.claude/.agents/.workbuddy/.codebuddy/.qoder/skills/` 副本（已 gitignore）；改源后跑 `npm run test:cli` 验证生成
-- 用户/项目侧仍用 `npx @agileflow/cli@latest init` 把 skill materialize 到各宿主目录
-
-**管辖边界**：只有 `atlas/flow.yaml` 的 `steps[]` 受 `AF_STEP`/主链闸门管理；`/af`（自动路由）、`/af-init`、`/af-explore`、快捷 `/af-fix`… 不进 flow steps。详见 [majorflow.md §管辖边界](majorflow.md#管辖边界铁律)。
-
-**不知道用什么命令？** 发 **`/af`** + 你想做的事（或只发 `/af` 让 AI 读进度继续）。legacy：`/agileflow` 文字 ≡ `/af`。
-
-**兼容（仅拷贝总控 skill，无门牌 af-* skill）：**
-
-```bash
-git clone https://github.com/aiKeeo/AgileFlow.git
-cp -r AgileFlow/skills/agileflow YOUR_PROJECT/skills/
-node YOUR_PROJECT/skills/agileflow/scripts/validate-atlas.mjs --bootstrap-scaffold --root YOUR_PROJECT
+```text
+af-req → af-mod → af-sol → af-dev → af-test
 ```
 
-> 勿使用裸命令 `npx agileflow`（npm 上另有同名无关包）。请用 **`npx @agileflow/cli`**。
->
-> **为什么 init/update 要带 `@latest`**：npx 首次运行后会把包缓存在 `~/.npm/_npx`，之后一直复用旧版；显式写 `@latest` 才会每次重新解析 dist-tag 拉最新版。已装到项目里的 `agileflow gate/log` 不受影响（跑的是项目内副本，版本应与 skill 一致）。CLI 自带新版提醒（后台探测、不阻塞；`AGILEFLOW_NO_UPDATE_CHECK=1` 可关）。
+这些是高级直达命令。普通用户继续使用 `/af` 即可。
 
-### Run 状态与可信回执
+### AgileFlow 仓库开发者
 
-正式 flow 由 Agent 自动启动或恢复 Run。手动排障时可执行：
+- 产品源位于 `skills/agileflow/`。
+- 不要提交 `.cursor/.claude/.agents/.workbuddy/.codebuddy/.qoder/skills/` 生成副本。
+- 修改源代码后运行：
 
-```bash
-agileflow run start --change add-login --step af-req --root .
-agileflow artifact scan --root .
-agileflow gate req-confirm --root .
-agileflow run gate-status --gate req-confirm --json --root .
-agileflow run status --json --root .
-# flow 已变化且旧 Run 不再适用：
-agileflow run abandon --reason "flow 已变更" --root .
-```
+  ```bash
+  cd skills/agileflow
+  npm run test:validate
+  ```
 
-启用 Run 后，门禁 PASS 会绑定当前 Run、step attempt、flow 版本和已登记产物摘要；产物或 flow 改动后须重新运行 gate。旧项目没有 `atlas/state/current.json` 时继续兼容原流程。
+- Agent 端到端复测见 [AGENT-RETEST.md](../../AGENT-RETEST.md)。
 
-### 首启脚手架（写入**项目** atlas/，不是 skill 目录）
+## 更多资料
 
-在**你的业务项目根**执行（`--root` = 项目根）。**可重复执行**（幂等：只补缺失文件，不覆盖已有 role/todo）。
-
-```bash
-npx @agileflow/cli gate --bootstrap-scaffold --root .
-# 兼容：node skills/agileflow/scripts/validate-atlas.mjs --bootstrap-scaffold --root .
-```
-
-**首条 Agent 回复**须写 `agileflow.env` 的 `AF_HOST_CAPABILITY=full|degraded`（据 tool list；`pending` 跑 gate 会红）。
-
-产出（均在 `YOUR_PROJECT/atlas/` 下）：
-
-- `role/role-req|model|sol|dev.md` — **stamp**（默认 assembled 不读正文；改文件 = custom 全文派活）
-- skill `role/layers/{key}/` — 默认派活分层源（`resolveRolePrompt`）
-- `humanTodo.md` — 需人类协助的事项
-- `todo.md` — **流程进度骨架**（sol 阶段总控填入 T 任务头；开发进度看这里）
-- `agileflow-dispatch.json` — 派活台账（Subagent 回报后总控追加 entry，再跑 gate）
-- `role/.agileflow-role-baseline.json` — role 哈希 baseline（改动 role 后对应文档闸门自动跳过）
-
-### 改提示词 / 加阶段（如何生效）
-
-| 你想做 | 怎么做 | 生效 |
-|--------|--------|------|
-| 改角色提示词 | 编辑 `atlas/role/role-*.md` | 下次派活用全文；该阶段**文档格式**闸门跳过；ORCH/`write-code` 等仍硬挡 |
-| 加流程步 | 在 `atlas/flow.yaml` 插入 `id: af-xxx`（**必须** `af-` 前缀）+ `prompt` + depends/outputs | `npx @agileflow/cli@latest update --step-skills-only` → 生成各宿主 `skills/af-xxx/SKILL.md` |
-| `prompt` 写法 | 直接写项目路径 `atlas/role/role-xxx.md`（也可为项目内 Skill 的 `SKILL.md`）；`null` 才是总控直做 | 路径 = 角色提示词来源，不是门牌 id；旧短名仅兼容，不再用于新配置 |
-| 刷新门牌 | `update --step-skills-only` | 按当前 flow 增删各宿主 `skills/af-*/SKILL.md`；改 flow 后还须 abandon/start Run |
-
-主链默认 id：`af-req` → `af-mod` → `af-sol` → `af-dev` → `af-test`。例如 `af-req` 明写 `prompt: atlas/role/role-req.md`。
-
----
-
-## 2. 三句话启动第一个功能
-
-在你配置好 AgileFlow 的 AI 工具中，说：
-
-```
-/af 做一个待办清单 API
-```
-
-（第一句没说谁决策 → AI 会发**启动卡**问你：AI 全权 vs 我来决策。若说「你定，别问我，直接做完」→ 跳卡写 `AF_DECIDE=ai`。只发 `/af` 且无正文 → AI 读 atlas 进度自动继续或当新需求。）
-
-| 组合 | 体验 |
-|------|------|
-| **AI 全权**（`AF_DECIDE=ai`） | 很少问；闸门绿后同会话连做；阶段 4 可自动并行 |
-| **我来决策**（`AF_DECIDE=user`） | 缺口/确认/阶段闸门须问你；并行须并行卡 |
-
-中途随时可说「后面都你定 / 不想看了」让 AI 接管剩余流程。
-
-| 轮次 | AI 做什么 | **你只需** | 落盘/闸门 |
-|:----:|----------|----------|-----------|
-| 1 | 发首启卡（若未点明决策） | 选「AI 全权」或「我来决策」 | 写 `atlas/agileflow.env` |
-| 2 | 写需求文档（REQ） | `user`：确认需求；`ai`：等交付 | `atlas/requirements/` + `req-confirm` |
-| 3 | 写技术方案 + 任务拆解 | `user`：确认方案；`ai`：等交付 | `atlas/solution/` + `sol-confirm` |
-| 4 | 逐任务写代码 + 编译 + 冒烟 | `ai`：**阻塞派活同会话循环**；`user`：点卡 | 每 T：`dev/T-*.md` + 闸门 |
-| 5 | 跑验收测试，出报告 | 拿到可部署的代码 | `atlas/tests/` + `test-entry` |
-
-> **单档位**（`AF_TIER=full`）：文档与证据厚度不变；差别只在**停点多少**与**是否自动并行**。铁律详见 [contract](templates/contract.md)。
-
----
-
-## 3. 三种典型用法
-
-### 场景 A：AI 全权交付 Demo（~1 小时）
-
-```
-/af 你定，别问我。做一个用户登录 API（JWT + MySQL）
-```
-
-AI 会按序落盘 REQ → sol → dev，有 ≥2 无冲突 T 时自动并行，每步过闸门。
-
-### 场景 B：逐步确认核心业务（半天~1 天）
-
-```
-/af 我来决策。做一个微信支付回调模块，要处理并发和幂等
-```
-
-与 AI 全权的差异只在**停点**，不在文档厚度。
-
-### 场景 C：改已有项目（brownfield）
-
-```
-/af 修改登录模块的超时处理
-```
-
-AI 只盘点登录模块及直接边界并写入 `atlas/init/`；发现真实跨模块依赖才扩扫上下游。
-只有你明确要求完整盘点或任务属于仓库级高影响变更，才扫描全仓。
-
----
-
-## 4. 术语速查卡（实战会遇到）
-
-| 你会看到 | 是什么 | 你不用管 |
-|----------|--------|----------|
-| **atlas/** | 所有项目文档目录 | — |
-| **AF_DECIDE** | `ai` 全权 / `user` 你来决策 | env 键名 |
-| **启动卡** | 首问：谁决策 | 选一次即可 |
-| **①②③** | 每开发任务：构思→写码→验收 | AI 按序做 |
-| **T-001-BE** | 一个开发任务切片 | 命名规则 |
-| **闸门红** | 检查没过，不能进阶 | `ai`：AI 自修重跑；`user`：可说「继续让 AI 修」 |
-| **humanTodo** | 需要你提供的密钥/资源 | 配好后说「已配置」 |
-| **继续 agileflow** | 断点续作 | 新对话说这句 |
-
-更多 env/错误码 → [TROUBLESHOOTING](TROUBLESHOOTING.md) · [contract](templates/contract.md)
-
----
-
-## 5. 常用命令
-
-| 你说 | 效果 |
-|------|------|
-| `走 agileflow` | 从头开始五阶段流程 |
-| `继续 agileflow` | 从上次停的地方接着跑 |
-| `/af-req 做登录` | 只做需求澄清 |
-| `/af-mod 用户模型` | 只做数据建模 |
-| `/af-sol 退款` | 只做技术方案 |
-| `/af-dev` | 进入开发实现 |
-| `/af-test` | 跑验收测试 |
-| `你定 / 别问我` | 切换为 AI 自主决策 |
-
----
-
-## 6. 常见问题
-
-**Q: 我关掉对话了，怎么接着来？**
-
-打开新对话，说「继续 agileflow」。AI 会读 `atlas/todo.md` 从断点接着做，不用重复解释。
-
-**Q: 需求写到一半发现不对？**
-
-直接说「需求不对，xxx 要改成 yyy」。AI 会触发变更管理，按纠偏阶梯回到对应阶段修改。
-
-**Q: AI 要我提供 API 密钥但我还没申请？**
-
-AI 会把这类事情写入 `atlas/humanTodo.md`。你先去申请，好了回来说「继续 agileflow」，AI 自动解除阻塞。
-
-**Q: 修一行 bug 也要走全流程？**
-
-不用。发 `/af-fix 修 xxx`（或 `/af 修 xxx`）即走快捷轨——零文档、零闸门、直接改。仅当改动超出边界（>3 文件/改 API/动权限）时自动升级为完整流程。
-
-**Q: 闸门报错看不懂？**
-
-报错行末有 `💡 白话说明 · 谁修`；或查 [TROUBLESHOOTING](TROUBLESHOOTING.md)。
-
-**Q: 根目录突然多了 atlas/ 文件夹？**
-
-那是 AgileFlow 的工作目录。**须进库**（团队共享流程状态）：`atlas/agileflow.env`、`atlas/agileflow-dispatch.json`、`atlas/todo.md`、`atlas/requirements/`、`atlas/solution/`、`atlas/dev/` 等。
-**可 gitignore**：`atlas/logs/`、本地临时产物。**勿** gitignore 整个 `atlas/`（见 [validate-atlas-gate §env](templates/validate-atlas-gate.md#agileflowenv流程状态--ai-维护)）。
-
----
-
-## 7. 改完 skill 后怎么复测（Agent 端到端）
-
-→ **[../../AGENT-RETEST.md](../../AGENT-RETEST.md)**（仓库根目录这一份；对会话说「按 AGENT-RETEST.md 复测，模式 ai|user」即可）
-
-静态测仍用：`npm run test:validate`。
-
----
-
-## 8. 下一步
-
-- 完整工作流 → [README.zh-CN.md](../../README.zh-CN.md)
-- 更改管理 → [phases/change-management.md](phases/change-management.md)
+- 产品介绍：[README.zh-CN.md](../../README.zh-CN.md)
+- 连贯示例：[flow-interaction.md](examples/flow-interaction.md)
+- 排障：[TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- 内部流程规则：[majorflow.md](majorflow.md)
+- 变更管理：[change-management.md](phases/change-management.md)
