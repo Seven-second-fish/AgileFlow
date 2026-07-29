@@ -128,8 +128,8 @@ atlas/solution/            # greenfield 无 init
 ## 生命周期
 
 ```
-brownfield init:  判定大仓？→ 定主路径 + 覆盖范围
-                  → **P0**（business短 + architecture主干 + 资产TopN + 主路径API）
+brownfield init:  定任务锚点 → 默认 local；跨模块证据才 dependencies；明确要求/仓库级高影响才 full
+                  → **范围内 P0**（business短 + architecture主干 + 资产TopN + 目标API）
                   → 自检 A 过 → AskQuestion（可注明 P1 待补）
                   → 有余力/要抄写 → **P1**；其余 **P2** refresh
 greenfield sol:   code-patterns-frontend|backend 🌱

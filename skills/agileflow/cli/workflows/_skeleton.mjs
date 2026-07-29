@@ -70,9 +70,11 @@ function buildPreFlowSteps(entry) {
   if (entry.phaseRel) {
     lines.push(`1. ${readUnderSkillRoot(entry.phaseRel)}`);
   }
-  lines.push('2. **总控直做** brownfield 盘点；写 `atlas/init/`（无 role Subagent）');
-  lines.push('3. 跑闸门：`agileflow gate --gate init-confirm --root .`');
-  lines.push('4. 绿后进入主链**第一个 flow 步**（不写 `AF_STEP=af-init`）');
+  lines.push('2. 读取 `agileflow context --json --root .` 的 `init`；已确认覆盖包含本次目标则直接复用');
+  lines.push('3. **总控直做**渐进盘点（无 role Subagent）：默认 `local`，有跨模块证据才 `dependencies`，用户明确要求或仓库级高影响才 `full`');
+  lines.push('4. 写 `atlas/init/`，README 必须声明 `盘点模式`、`任务锚点`、`覆盖路径`、`未覆盖` 和 `升级依据`');
+  lines.push('5. 跑闸门：`agileflow gate --gate init-confirm --root .`');
+  lines.push('6. 绿后进入主链**第一个 flow 步**（不写 `AF_STEP=af-init`）');
   return lines;
 }
 
@@ -81,9 +83,12 @@ function buildPreFlowSteps(entry) {
  */
 function buildExploreSteps() {
   return [
-    '1. 只读相关代码、日志和现有 atlas，给出发现摘要与 2～4 个方向',
-    '2. 用方向 AskQuestion 收敛，最多两轮；不写 env/REQ/源码/flow',
-    '3. 选定后重新路由到正式 flow 步或快捷轨',
+    '1. 只读相关代码、日志和现有 atlas；先明确探索目标、范围和核心不确定性',
+    '2. 第一轮只在聊天中结构化输出：`探索目标`、`现状与证据`、`核心不确定性`、`候选方向`、`初步建议`、`需要用户决定`、`下一步路由预览`',
+    '3. `现状与证据`注明文件/日志位置和置信度；`候选方向`给 2～4 项，并用表格比较核心思路、优点、成本/缺点、风险和适用条件',
+    '4. 用方向 AskQuestion 收敛（宿主无该工具则普通提问），最多两轮；不写 env/REQ/源码/flow',
+    '5. 用户选择后结构化输出：`已选方向`、`决策依据`、`交付边界`、`未决问题`、`推荐路由`，再重新路由到正式 flow 步或快捷轨',
+    '6. **默认不落盘**；仅当用户明确要求记录，或结论确需跨会话交接/审计时，先说明必要性，再写 `atlas/logs/explore-*.md`',
   ];
 }
 

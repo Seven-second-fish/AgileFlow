@@ -41,7 +41,7 @@ AgileFlow 要解决的不是「让 AI 多写点代码」，而是：
 | scope | 门牌 | 受 flow 管理 | 说明 |
 |-------|------|-------------|------|
 | **flow** | `/af-req` … `/af-test` + 自定义插入步 | **是** | 默认主链五步；`/af-tests` = `/af-test` 别名 |
-| **pre-flow** | `/af-init` | **否** | brownfield 盘点；`init-confirm` 后进第一个 flow 步；**永不**写入 flow steps |
+| **pre-flow** | `/af-init` | **否** | brownfield 渐进盘点（默认 local）；`init-confirm` 后进第一个 flow 步；**永不**写入 flow steps |
 | **routing** | `/af`（默认）、`/af-explore` | **否** | `/af` = 万能自动路由；`af-explore` = 窄探索支路；不写 env/REQ/flow（落地到真实步后另说） |
 | **quick** | `/af-fix` … `/af-revise` | **否** | 快捷轨；越界 → 升级 flow 轨 |
 
@@ -83,7 +83,8 @@ AgileFlow 要解决的不是「让 AI 多写点代码」，而是：
 af-req → af-mod(按需) → af-sol → af-dev(①②③) → af-test
 ```
 
-brownfield 另有前置 `/af-init`（盘点已有代码与业务）：**进场初始化，不进 `flow.yaml` steps**；做完再进主链。
+brownfield 另有前置 `/af-init`：默认只盘当前任务模块，代码证据需要时扩到直接
+上下游，用户明确或仓库级高影响才全仓；**不进 `flow.yaml` steps**，当前目标覆盖确认后再进主链。
 
 | 阶段 | 一句话 |
 |------|--------|
@@ -172,7 +173,9 @@ brownfield 另有前置 `/af-init`（盘点已有代码与业务）：**进场�
 
 ### init — 项目盘点（brownfield，主链外）
 
-从零新建**不做** init；有存量才盘点。盘点是为了后续少幻觉、少撞命名，不是第四条主链阶段。
+从零新建**不做** init；有存量按当前目标渐进盘点。默认 `local`，真实跨模块证据
+升级 `dependencies`，明确要求或仓库级高影响才 `full`。已确认覆盖可以复用，
+未覆盖模块只补局部记录。盘点是为了后续少幻觉、少撞命名，不是第四条主链阶段。
 
 ---
 

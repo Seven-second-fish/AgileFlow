@@ -135,6 +135,16 @@ assert(reqBody.includes('flow.yaml'), 'flow 门牌含 flow.yaml');
 assert(reqBody.includes('stepId=`af-req`') || reqBody.includes('stepId=af-req'), 'flow 门牌含 stepId');
 assert(reqBody.includes('当前 step 的 `prompt`'), 'flow 门牌要求读取当前 step.prompt');
 
+const initBody = fs.readFileSync(path.join(tmp, 'skills', 'af-init', 'SKILL.md'), 'utf8');
+assert(initBody.includes('默认 `local`'), 'init 门牌默认局部扫描');
+assert(initBody.includes('跨模块证据') && initBody.includes('`dependencies`'), 'init 门牌按证据升级依赖扫描');
+assert(initBody.includes('仓库级高影响') && initBody.includes('`full`'), 'init 门牌限制完整盘点触发');
+assert(initBody.includes('context --json') && initBody.includes('直接复用'), 'init 门牌复用已有覆盖');
+assert(
+  initBody.includes('`任务锚点`') && initBody.includes('`覆盖路径`') && initBody.includes('`未覆盖`'),
+  'init 门牌要求结构化覆盖元数据',
+);
+
 const fixBody = fs.readFileSync(path.join(tmp, 'skills', 'af-fix', 'SKILL.md'), 'utf8');
 assert(fixBody.includes('非 flow 步') || fixBody.includes('快捷'), 'quick 门牌声明非 flow');
 assert(!fixBody.includes('agileflow-dispatch.json'), 'quick 无台账');
@@ -156,6 +166,19 @@ assert(afBody.includes('同级') && afBody.includes('agileflow'), 'af 门牌说�
 
 const exploreBody = fs.readFileSync(path.join(tmp, 'skills', 'af-explore', 'SKILL.md'), 'utf8');
 assert(exploreBody.includes('最多两轮'), 'explore 门牌内含完整的探索收口规则');
+assert(exploreBody.includes('默认不落盘'), 'explore 门牌默认只做聊天输出');
+assert(
+  exploreBody.includes('跨会话交接/审计') && exploreBody.includes('atlas/logs/explore-*.md'),
+  'explore 门牌仅在必要时允许写探索日志',
+);
+assert(
+  exploreBody.includes('现状与证据') &&
+    exploreBody.includes('核心不确定性') &&
+    exploreBody.includes('候选方向') &&
+    exploreBody.includes('下一步路由预览'),
+  'explore 门牌要求结构化聊天输出',
+);
+assert(exploreBody.includes('成本/缺点') && exploreBody.includes('适用条件'), 'explore 候选方向包含统一比较维度');
 assert(!exploreBody.includes('只读这一份路由 SSOT'), 'explore 门牌不为一个小分支加载整份路由文档');
 
 const testsBody = fs.readFileSync(path.join(tmp, 'skills', 'af-tests', 'SKILL.md'), 'utf8');

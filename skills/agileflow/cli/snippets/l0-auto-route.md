@@ -4,6 +4,7 @@
 - **具体门牌优先**：消息含 `/af-*` 时直接命中；`/agileflow` 文字仍兼容为 `/af`
 - **已有内容要改**：修改/调整/同步已有 REQ、model、solution、dev 时自动路由 `af-revise`；是否已确认不改变入口
 - **批量缺陷**：用户一次提交多条缺陷/验收反馈时先路由 `af-revise` 逐条归因；不直接假定需求错，也不直接进 `af-test`
+- **brownfield 不交全仓税**：新交付未被 `context.init` 覆盖时路由 `af-init`，默认只做 `local`；读到跨模块证据才扩到 `dependencies`，明确要求或仓库级高影响才 `full`
 - **只在无法唯一判断或需放弃 active Run 时提问**，不弹阶段菜单
 - **不写** `AF_STEP=af`；落地到真实步（`af-req`/`af-fix`/…）后才维护 env/台账/闸门
 - 首行：`📍 Agileflow | routeId: {id} | reason: {一句依据}`

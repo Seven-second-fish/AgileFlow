@@ -25,7 +25,7 @@ export const BUILTIN_CATALOG = [
   {
     id: 'af-init',
     prefix: '/af-init',
-    description: '项目盘点（brownfield）',
+    description: '渐进式项目盘点（brownfield）',
     scope: 'pre-flow',
     kind: 'pre-flow',
     phaseRel: 'phases/00-project-init.md',

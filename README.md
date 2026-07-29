@@ -216,7 +216,7 @@ Subagent output → artifact scan → log (doorplate) → gate → run gate-stat
 
 | Gate | Blocks |
 |------|--------|
-| `init-confirm` | Brownfield without inventory |
+| `init-confirm` | Brownfield target without confirmed scoped inventory |
 | `req-confirm` | Incomplete REQ / scope / BDD AC |
 | `mod-confirm` | Incomplete or silently skipped modeling |
 | `sol-confirm` | Missing architecture, contracts, boundaries, or todo |

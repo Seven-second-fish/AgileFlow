@@ -121,6 +121,33 @@ export function validateInit(projectRoot, reporter) {
         message: 'README 缺少「## 覆盖范围（init）」块（P0 必过项）。',
       });
     }
+    const scopeMatch = readme.match(/盘点模式[：:]\s*(local|dependencies|full|局部|依赖|完整)/i);
+    if (!scopeMatch) {
+      reporter.add({
+        severity: 'info',
+        rule: 'INIT-R004',
+        file: 'atlas/init/README.md',
+        line: findLine(readme, /## 覆盖范围/),
+        message: 'README 覆盖范围建议声明「盘点模式：local|dependencies|full」；旧版无此字段按 full 兼容。',
+      });
+    } else if (!/任务锚点[：:]\s*\S+/.test(readme) && !/(full|完整)/i.test(scopeMatch[1])) {
+      reporter.add({
+        severity: 'error',
+        rule: 'INIT-R005',
+        file: 'atlas/init/README.md',
+        line: findLine(readme, /盘点模式/),
+        message: 'local/dependencies 盘点必须声明非空「任务锚点」。',
+      });
+    }
+    if (scopeMatch && !/(full|完整)/i.test(scopeMatch[1]) && !/覆盖路径[：:]\s*\S+/.test(readme)) {
+      reporter.add({
+        severity: 'error',
+        rule: 'INIT-R006',
+        file: 'atlas/init/README.md',
+        line: findLine(readme, /盘点模式/),
+        message: 'local/dependencies 盘点必须声明非空「覆盖路径」。',
+      });
+    }
     if (!/三大业务闭环|业务闭环/.test(readme)) {
       reporter.add({
         severity: 'warn',

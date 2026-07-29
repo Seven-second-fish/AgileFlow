@@ -8,36 +8,43 @@
 
 ## Agent 摘要
 
-**入口**：`/af-init` 或 brownfield 首次接手。greenfield **跳过**本阶段。
+**入口**：`/af-init [local|dependencies|full] [任务/模块]`，或 brownfield 首次接手。
+greenfield **跳过**本阶段。
 
-**目标**：对已有代码仓做 as-is 盘点 → `atlas/init/`（业务给谁用、规则怎么算、怎么跑、API/模块/表/代码长什么样）。
+**目标**：围绕当前交付所需范围做 as-is 盘点 → `atlas/init/`；默认从任务相关
+模块开始，只在证据表明跨模块或仓库级风险时扩大。
 
-| 执行 init | 跳过 init |
-|-----------|-----------|
-| brownfield：有业务源码/migration/可运行应用 | greenfield：从零、空仓、用户明确不要 init |
-| `/af-init` | 仅 Skill/文档仓做流程验证（可选） |
-| 首次 brownfield 且无 `atlas/init/` | REQ/model 设计阶段（只改 model/，不改 init） |
+| 模式 | 默认触发 | 扫描边界 |
+|------|----------|----------|
+| `local`（默认） | 目标明确的新交付或维护任务 | 目标模块、入口文件、直接数据/API/测试 |
+| `dependencies` | 局部扫描发现真实跨模块调用或共享契约 | local + 直接上下游模块 |
+| `full` | 用户明确要求；或确认属于仓库级高影响变更 | 全仓 P0，按需 P1/P2 |
 
-**brownfield 跳过 init**：须 AskQuestion 确认 + todo 留痕 `init: 用户跳过（风险已知）`（原因：写法锚点可能缺失）。
+**无任务锚点**：不得静默全扫；只问一个问题，让用户给任务/模块，或明确选择
+`full`。已有已确认覆盖且包含本次目标 → 直接复用，不重复 init。
 
 **执行顺序**：
 ```
-① brownfield 判定 → ② 扫描仓库 → ②b 写法锚点模式卡（首次须问）→ ③ 落盘 → ④ 自检 → ⑤ 确认 → 停
+① brownfield 判定 → ①b 定范围 → ② 按范围扫描 → 必要时升级范围
+→ ②b 写法锚点 → ③ 落盘覆盖元数据 → ④ 自检 → ⑤ 确认
 ```
 
-**必建（brownfield）**：`README.md`、`p0-business.md`；有 REST → `api-catalog` + `p0-domain-math`；有持久化 → `data/`。
+**所有模式必建**：`README.md`、`p0-business.md`，但只描述已扫描范围；涉及 REST/
+持久化时，只创建目标相关的 API、规则和数据文档，禁止为了凑完整而全仓扫描。
 
 **写法锚点**：`AF_DECIDE=ai` → 模式 B 直接落盘；`user` 且无记录 → AskQuestion → 停。
 
-**后置**：init 已确认 → 可 `/af-req` 或 brownfield 下 `/af-sol`/`/af-dev`（各阶段前置须满足）。
+**后置**：当前任务所需覆盖已确认 → 可 `/af-req` 或 brownfield 下
+`/af-sol`/`/af-dev`。以后任务落到未覆盖模块时，再补一次局部/依赖扫描。
 
-**首行**：`📍 Agileflow | … | 阶段：0-项目盘点 | 入口：/af-init | init：atlas/init/`
+**首行**：`📍 Agileflow | af-init:{local|dependencies|full} | 锚点：{任务/模块} | 原因：{范围依据}`
 
 
 ## 本阶段做什么
 
-对 **已有代码 / 可运行应用** 的仓库做 **as-is 盘点**，落盘 `atlas/init/`。
-回答：**业务给谁用、核心规则怎么算、怎么跑、API/模块/表/代码各长什么样**。
+对 **已有代码 / 可运行应用** 做与当前任务成比例的 **as-is 盘点**，落盘
+`atlas/init/`。局部模式只回答当前任务所需的业务、规则、运行方式、API、模块、
+数据和写法；不是默认生成全仓百科。
 
 **分层阅读** → [init.md §盘点层模型](../templates/init.md#盘点层模型init-阅读导航--非测试层)
 
@@ -47,12 +54,24 @@
 
 | 执行 init ✅ | 跳过 init ❌ |
 |--------------|--------------|
-| **brownfield**：已有业务源码、migration、可运行应用 | **greenfield**：纯从零、新系统、空仓库脚手架、用户明确「不需要 init」 |
-| `/af-init` | 仅 Skill/文档仓库且用户只做流程验证（可选 init，非强制） |
-| 首次接触 brownfield 且 `atlas/init/` 不存在 | REQ/model 仅设计阶段（只改 model/，**不**改 init） |
-| `/af-init refresh …` 增量/全量刷新 | 纯答疑/review；符合边界的维护任务直接走快捷轨 |
+| **brownfield** 且本次目标不在已确认覆盖内 | **greenfield**：纯从零、新系统、空仓库脚手架、用户明确「不需要 init」 |
+| `/af-init local|dependencies|full` | 仅 Skill/文档仓库且用户只做流程验证（可选 init，非强制） |
+| 首次接触 brownfield 且有明确任务/模块 | 已确认 init 的覆盖路径包含本次目标 |
+| `/af-init refresh …` 按指定范围刷新 | 纯答疑/review；符合边界的维护任务直接走快捷轨 |
 
-**铁律**：greenfield 不创建 `atlas/init/`；brownfield 在进 `/af-dev`/`/af-sol` 前 **须** 有已确认或进行中的 init（见路由硬规则）。
+**铁律**：greenfield 不创建 `atlas/init/`；brownfield 在进 `/af-dev`/`/af-sol`
+前须有**覆盖本次目标**的已确认或进行中 init，不要求与本次任务无关的全仓盘点。
+
+### 三级扫描选择
+
+1. **默认 local**：用户给出具体任务、模块、目录、接口或错误位置。
+2. **升级 dependencies**：读到真实跨模块调用、共享类型/契约、共同数据表、全局配置
+   或目标模块无法单独解释；首行说明升级证据，不问用户。
+3. **升级 full**：用户明确要求完整盘点；或 dependencies 已确认变更跨越仓库核心边界
+   （如仓库级迁移、平台升级、中央权限/资金规则的全局改造）。不得仅因“仓库有代码”
+   或“涉及登录模块”直接 full。
+4. **禁止降级冒充**：选择 local 不是少读目标链路；目标模块的入口、直接调用、数据、
+   测试和写法锚点仍须读清。
 
 ### 用户跳过 init 处理
 
@@ -85,7 +104,7 @@ atlas/init/
 │   └── p1-frontend.md / p1-backend.md  # 速查→资产索引靠前→§一~§五（见 code-conventions）
 └── data/                     # 有持久化
     ├── README.md             # 场景→碰表清单（盘点·数据入口）
-    ├── api-catalog.md        # 有 REST：全量 API 速查（盘点·接口）
+    ├── api-catalog.md        # 有 REST：已覆盖范围的 API 速查（盘点·接口）
     ├── schema-overview.md    # ER 图 + migration 演进
     ├── entities/             # ⭐ 业务用途 + 关键字段 + 碰表
     ├── relations/            # 联查路径；复杂场景独立文
@@ -100,14 +119,15 @@ atlas/init/
 ## 执行流程
 
 ```
-① brownfield 判定 → ② 扫描仓库 → ②b 写法锚点模式卡（首次须问 A/B）→ ③ 按模板落盘 → ④ 落盘自检 → ⑤ AskQuestion 确认 → 停止
+① brownfield 判定 → ①b 选择 local/dependencies/full → ② 按范围扫描
+→ 证据触发时升级 → ②b 写法锚点 → ③ 按模板落盘 → ④ 自检 → ⑤ 确认
 ```
 
-> **②b**：首次全量且模式未记录 → AskQuestion（[init-askquestion](../templates/contract.md#init-写法锚点模式首次全量--落盘-codebase-前)）→ **停**；用户选定后下条再 ③。可跳过条件见下方「写法锚点」。
+> **②b**：首次需要落 `codebase/` 且写法模式未记录 → AskQuestion（[init-askquestion](../templates/contract.md#init-写法锚点模式首次全量--落盘-codebase-前)）→ **停**；用户选定后下条再 ③。可跳过条件见下方「写法锚点」。
 
 ### ① brownfield 判定
 
-命中 **任一** → brownfield，须 init：
+命中 **任一** → brownfield；正式交付前须有覆盖本次目标的 init：
 
 - 存在业务源码目录（如 `src/`、`apps/`、`server/`、`internal/` 等 **且含业务逻辑**）
 - 存在 DB migration / DDL / ORM Entity / Prisma schema
@@ -121,23 +141,46 @@ atlas/init/
 
 **歧义** → AskQuestion：brownfield（须 init）/ greenfield（跳过 init）。
 
-### ② 扫描仓库（读清楚，固定顺序）
+### ①b 盘点范围与复用
 
-> **大仓**：先按 [init-scan-checklist 大仓分级 P0/P1/P2](../templates/init.md#大仓分级) 执行；**P0 过即可确认**。小仓可同轮加深到 P1。
+先读 `agileflow context --json` 的 `init`：
+
+- `scope=full` 且已确认 → 全部任务可复用。
+- `scope=local|dependencies` 且本次目标落在 `targets/coveredPaths` → 直接复用。
+- 本次目标不在覆盖内 → 新一轮 `local` 增量扫描；保留已有内容，只扩覆盖元数据。
+- `init` 缺失且用户目标明确 → `local`。
+- `init` 缺失且没有目标 → 问任务/模块；用户明确“全仓盘点”才 `full`。
+
+README 的 `## 覆盖范围（init）` 是累积登记表。每次 local/dependencies 扫描追加
+一个 `### {任务锚点}` 记录，不覆盖旧记录；每条必须写可机读元数据：
+
+```markdown
+- 盘点模式：local | dependencies | full
+- 任务锚点：{用户任务或目标模块}
+- 覆盖路径：`src/auth`, `src/session`
+- 未覆盖：{明确列出}
+- 升级依据：无 | {从 local/dependencies 扩大的代码证据}
+```
+
+### ② 按范围扫描（范围内仍按固定顺序）
+
+> `local` 只读目标模块和直接边界；`dependencies` 再读直接上下游；`full` 才按
+> [init-scan-checklist 大仓分级 P0/P1/P2](../templates/init.md#大仓分级) 执行。
+> 所有模式都是**范围内 P0 过即可确认**，不得把未扫描区域写成已覆盖。
 
 | 顺序 | 读什么 | 提取什么 | 落盘 |
 |------|--------|----------|------|
-| 0 | （大仓）定主路径 + 写覆盖范围 | 用户指定 / 主菜单前5 / README 首故事 | `README` 覆盖范围块 |
-| 1 | 根 **README**、`docs/`、REQ、前端路由/菜单、Entity/Enum | 业务、旅程、术语、**实体↔功能** | **`p0-business.md`** + **`atlas/glossary.md`** |
+| 0 | 定任务锚点 + 写覆盖范围 | 用户目标 / 指定模块；full 才选全仓主路径 | `README` 覆盖范围块 |
+| 1 | 目标相关 README/docs/REQ/路由/Entity/Enum | 范围内业务、旅程、术语、**实体↔功能** | **`p0-business.md`** + 按需 glossary |
 | 2 | `git remote`、分支 | 仓库策略 | `p0-repository.md`（无 git 跳过） |
 | 3 | docker-compose、`.env.example`、启动脚本 | 启动命令、依赖 | `p0-environment.md` |
 | 3b | 外部集成配置、Mock 开关、鉴权 | JWT/OAuth/第三方 | **`p0-integrations.md`**（有则建） |
-| 4 | package.json / pom.xml 等 | 技术栈 | `p1-tech-stack.md` |
-| 5 | 模块划分 + **Service 跨模块 inject**（大仓：主路径模块） | 模块一览 + 依赖 | **`p1-architecture.md`** |
+| 4 | 目标模块的 package/pom；full 才汇总全仓 | 技术栈 | `p1-tech-stack.md` |
+| 5 | 目标模块 + **直接 Service 跨模块调用**；dependencies 扩上下游 | 模块与真实依赖 | **`p1-architecture.md`** |
 | 6 | 高频组件/Util **Top8～15** + 典型页/Controller | **资产索引** + 模板 | `codebase/p1-frontend.md` / `codebase/p1-backend.md` |
 | 6b | 典型 API **内部调用链**（P1；2～4 条） | mermaid | **codebase §四** |
-| 7 | migration、Entity（大仓：主路径核心表） | 表、FK、业务用途 | `data/entities/` … |
-| 7b | Controller 路由（大仓：**主路径 API**，非全站硬扫） | 方法、鉴权、碰表 | **`data/api-catalog.md`** |
+| 7 | 目标链路触达的 migration、Entity | 表、FK、业务用途 | `data/entities/` … |
+| 7b | 目标 Controller 路由；dependencies 加直接调用方 | 方法、鉴权、碰表 | **`data/api-catalog.md`** |
 | 7c | migration 顺序 | ER + 演进 | **`schema-overview.md`**（可 P1） |
 | 7d | Calculator/Util（有计算；主域） | 公式 | **`p0-domain-math.md`** |
 | 7e | 集成测试（P2/有则） | 测试索引 | **`p1-testing.md`** |
@@ -206,6 +249,8 @@ questions:
 ### ③ 落盘
 
 - 严格按 [init.md](../templates/init.md) 写模板正文
+- README 覆盖块写 `盘点模式/任务锚点/覆盖路径/未覆盖/升级依据`
+- local/dependencies 只追加或更新本次覆盖，禁止删掉其他已确认覆盖
 - 每个文件首行：`> **盘点·业务** · …` / `> **P0** · …` / `> **P1** · …`（见分层模型）
 - `README.md` 状态先标 **草稿**
 
@@ -240,7 +285,8 @@ questions:
 | `/af-init refresh codebase` | 更新本端 `p1-frontend|backend`（资产 + §三）；**大仓只补当前模块/主路径**，扩覆盖范围声明 |
 | `/af-init refresh conventions` | **仅模式 A**：更新 `atlas/conventions/` |
 | `/af-init refresh environment` | 更新 `p0-environment.md`、`p1-tech-stack.md` |
-| `/af-init` 或 `/af-init refresh` | 全量重扫 |
+| `/af-init` 或 `/af-init refresh` | 默认按当前任务做 local 增量；无任务锚点先问 |
+| `/af-init full` / `/af-init refresh full` | 全量重扫 |
 | [增量 refresh 卡片](../templates/contract.md#init-增量-refreshreq-开发完毕后) | 按用户选择范围执行 |
 
 **做法**：REQ/model **设计阶段**只写 model/（to-be），不更新 init；实现未落地前不 refresh init。
@@ -268,28 +314,30 @@ questions:
 | | |
 |---|---|
 | **前置** | brownfield 判定通过 |
-| **后置** | init 已确认 → 可进入阶段 1 `/af-req` 或 brownfield 下直接 `/af-sol`/`/af-dev`（须满足各阶段前置） |
+| **后置** | 当前目标的 init 覆盖已确认 → 可进入阶段 1 `/af-req`，或 brownfield 下直接 `/af-sol`/`/af-dev`（须满足各阶段前置） |
 
 ---
 
 ## 首行声明
 
-`📍 Agileflow | 决策：{AI全权/我来} | 阶段：0-项目盘点 | 入口：/af-init | init：atlas/init/`
+`📍 Agileflow | af-init:{local|dependencies|full} | 锚点：{任务/模块} | 原因：{范围依据}`
 
-refresh 时加：`操作：{全量|增量 data|…} | 触发：{首次|REQ-xxx 开发完毕}`
+refresh 时加：`操作：{局部|依赖|完整|增量 data|…} | 触发：{首次|REQ-xxx 开发完毕}`
 
 ---
 
 ## 做法与红线
 
 - greenfield 不创建 `atlas/init/`（原因：init 只描述 as-is）
-- brownfield 必建 **p0-business.md**
-- 有 REST/API 时建 **api-catalog** 与 **p0-domain-math**（除非用户明确「极简 init」）
+- brownfield 在**本次扫描范围内**必建/更新 **p0-business.md**
+- 有 REST/API 时只记录目标链路的 **api-catalog** 与相关领域规则；full 才追求全仓覆盖
 - 序列图/公式与源码一致（init 须 as-is）
 - 实体须写业务用途与用户怎么用，不只写字段
 - init 不写任务、AC、open-questions、decisions、接口设计
 - REQ 设计阶段不改 init
 - 扫描落盘后再写业务代码
+- 默认 local；有代码证据才 dependencies；明确要求或仓库级高影响才 full
+- 覆盖元数据必须诚实，未扫区域不得写成已覆盖
 - init 确认后同回复不进 dev 写码
 - 无 git/无 DB 不建 p0-repository / data/ 占位文件
 - conventions 与 codebase 不双份维护

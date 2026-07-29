@@ -12,6 +12,7 @@ import { runtimeGateStatus } from '../scripts/runtime/receipts.mjs';
 import {
   detectBrownfield,
   needsProjectInit,
+  readProjectInitCoverage,
 } from '../scripts/validate-atlas/lib/brownfield.mjs';
 import {
   inferPhaseFromArtifacts,
@@ -52,6 +53,7 @@ export function buildProjectContext(projectRoot) {
   const warnings = [];
   const artifactPhase = inferPhaseFromArtifacts(root, brownfield);
   const needsInit = needsProjectInit(root);
+  const initCoverage = readProjectInitCoverage(root);
 
   let inferredSteps = [];
   let readySteps = [];
@@ -112,6 +114,14 @@ export function buildProjectContext(projectRoot) {
     phase,
     decisionMode,
     hostCapability,
+    init: {
+      ...initCoverage,
+      required: needsInit,
+      recommendedScope:
+        brownfield && initCoverage.scope !== 'full'
+          ? 'local'
+          : null,
+    },
     flow: {
       loaded: Boolean(flowLoaded.ok && flowLoaded.flow),
       stepIds: flowStepIds,

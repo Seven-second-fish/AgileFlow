@@ -125,6 +125,79 @@ export function detectBrownfield(projectRoot) {
 }
 
 /**
+ * 读取 init README 中的渐进盘点覆盖信息。
+ * 旧版已确认 init 没有 scope 元数据，按历史语义视为 full，避免升级后重复盘点。
+ *
+ * @param {string} projectRoot
+ * @returns {{
+ *   present: boolean,
+ *   status: 'missing'|'draft'|'confirmed',
+ *   scope: 'none'|'local'|'dependencies'|'full',
+ *   target: string,
+ *   targets: string[],
+ *   coveredPaths: string[],
+ *   legacy: boolean
+ * }}
+ */
+export function readProjectInitCoverage(projectRoot) {
+  const initReadme = readText(path.join(projectRoot, 'atlas', 'init', 'README.md')) || '';
+  if (!initReadme.trim()) {
+    return {
+      present: false,
+      status: 'missing',
+      scope: 'none',
+      target: '',
+      targets: [],
+      coveredPaths: [],
+      legacy: false,
+    };
+  }
+
+  const status = /状态[：:]\s*已确认/.test(initReadme) ? 'confirmed' : 'draft';
+  const scopeMap = {
+    local: 'local',
+    '局部': 'local',
+    dependencies: 'dependencies',
+    '依赖': 'dependencies',
+    full: 'full',
+    '完整': 'full',
+  };
+  const scopes = [...initReadme.matchAll(
+    /(?:盘点模式|扫描模式)[：:]\s*(local|dependencies|full|局部|依赖|完整)/gi,
+  )].map((match) => scopeMap[match[1].toLowerCase()]);
+  const legacy = scopes.length === 0;
+  const scope = legacy
+    ? (status === 'confirmed' ? 'full' : 'local')
+    : scopes.includes('full')
+      ? 'full'
+      : scopes.includes('dependencies')
+        ? 'dependencies'
+        : 'local';
+  const targets = [...new Set(
+    [...initReadme.matchAll(/任务锚点[：:]\s*(.+)/g)]
+      .map((match) => match[1].replace(/[`*_]/g, '').trim())
+      .filter(Boolean),
+  )];
+  const target = targets.length > 0 ? targets[targets.length - 1] : '';
+  const coveredPaths = [...new Set(
+    [...initReadme.matchAll(/覆盖路径[：:]\s*(.+)/g)]
+      .flatMap((match) => match[1].split(/[,，、]/))
+      .map((value) => value.replace(/[`*_]/g, '').trim())
+      .filter(Boolean),
+  )];
+
+  return {
+    present: true,
+    status,
+    scope,
+    target,
+    targets,
+    coveredPaths,
+    legacy,
+  };
+}
+
+/**
  * 是否已有实质确认的需求。
  * 目的：greenfield 在流程中生成源码后会被源码扫描识别成 brownfield，
  * 已确认 REQ 可证明主链已经启动，不能再错误路由回 init。
@@ -156,7 +229,7 @@ export function hasConfirmedRequirement(projectRoot) {
  */
 export function needsProjectInit(projectRoot) {
   if (!detectBrownfield(projectRoot)) return false;
-  const initReadme = readText(path.join(projectRoot, 'atlas', 'init', 'README.md')) || '';
-  if (/状态[：:]\s*已确认/.test(initReadme)) return false;
+  const initCoverage = readProjectInitCoverage(projectRoot);
+  if (initCoverage.status === 'confirmed') return false;
   return !hasConfirmedRequirement(projectRoot);
 }
